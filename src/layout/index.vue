@@ -1,20 +1,19 @@
 <template>
-    <el-container>
-        <el-aside width="200px">
-            <Aside />
-        </el-aside>
+    <div class="layout">
         <el-container>
-            <el-header>
-                <Nav />
-            </el-header>
-            <el-main>
-                <router-view></router-view>
-            </el-main>
+            <el-aside>
+                <Aside />
+            </el-aside>
+            <el-container>
+                <el-header>
+                    <Nav />
+                </el-header>
+                <el-main>
+                    <router-view></router-view>
+                </el-main>
+            </el-container>
         </el-container>
-    </el-container>
-
-
-
+    </div>
 </template>
 
 <script>
@@ -27,4 +26,18 @@ export default {
 }
 </script>
 
-<style lang='scss' scoped></style>
+<style scoped>
+.el-container {
+    min-height: 400px;
+}
+
+.el-aside {
+    width: auto !important;
+    height: 100vh;
+    background: white;
+}
+
+.el-header {
+    padding: 0 0;
+}
+</style>
