@@ -73,22 +73,22 @@ const router = new Router({
           },
           component: () => import("@/pages/notice/Details.vue"),
         },
-        // {
-        //   path: "/notice/noticeList",
-        //   name: "noticeList",
-        //   meta: {
-        //     title: "公告列表",
-        //   },
-        //   component: () => import("@/pages/notice/noticeList.vue"),
-        // },
-        // {
-        //   path: "/userCenter",
-        //   name: "UserCenter",
-        //   meta: {
-        //     title: "个人中心",
-        //   },
-        //   component: () => import("@/pages/userCenter.vue"),
-        // },
+        {
+          path: "/notice/noticeList",
+          name: "noticeList",
+          meta: {
+            title: "公告列表",
+          },
+          component: () => import("@/pages/notice/noticeList.vue"),
+        },
+        {
+          path: "/userCenter",
+          name: "UserCenter",
+          meta: {
+            title: "个人中心",
+          },
+          component: () => import("@/pages/UserCenter.vue"),
+        },
       ],
     },
   ],

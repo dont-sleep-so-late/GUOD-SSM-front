@@ -1,7 +1,8 @@
 <template>
     <el-row class="tac">
         <el-col :span="12">
-            <el-menu router default-active="index" class="el-menu-vertical-demo" :collapse="isCollapse">
+            <el-menu :default-active="this.$store.state.menus.editableTabsValue" class="el-menu-vertical-demo"
+                active-text-color="#fff" :collapse="isCollapse">
                 <div class="userInfo">
                     <div class="userHeader">
                         <div :class="{ userAvatar: !isCollapse }">
@@ -130,5 +131,13 @@ export default {
     border-radius: 2px;
     line-height: 50px;
     box-sizing: border-box;
+}
+
+.el-menu-item:hover i {
+    color: #409EFF !important;
+}
+
+.el-menu-item:hover {
+    color: #409EFF !important;
 }
 </style>

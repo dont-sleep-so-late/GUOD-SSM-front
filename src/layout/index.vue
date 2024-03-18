@@ -9,6 +9,7 @@
                     <Nav />
                 </el-header>
                 <el-main>
+                    <Tabs />
                     <router-view></router-view>
                 </el-main>
             </el-container>
@@ -19,10 +20,11 @@
 <script>
 import Aside from '../components/Aside.vue';
 import Nav from '../components/Nav.vue';
+import Tabs from '../components/Tabs.vue';
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'layout',
-    components: { Aside, Nav }
+    components: { Aside, Nav, Tabs }
 }
 </script>
 
