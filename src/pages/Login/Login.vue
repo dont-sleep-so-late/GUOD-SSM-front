@@ -18,51 +18,33 @@
         </div>
       </div>
       <div class="right">
-        <div class="form-items" :class="{ loginClassFlag: !registerFlag }" v-show="!registerFlag">
-          <div class="input_lable">
+        <el-form hide-required-asterisk="true" class="form-items" :model="FormData" :rules="rules" ref="FormData"
+          :class="{ loginClassFlag: !registerFlag }" v-show="!registerFlag">
+          <el-form-item label="" prop="username" class="input_lable">
             <h1>用户名</h1>
             <el-input v-model="FormData.username" placeholder="请输入账号"></el-input>
-          </div>
-          <div class="input_lable">
-            <h1>密码</h1>
+          </el-form-item>
+          <el-form-item prop="password" class="input_lable">
+            <h1>密 码</h1>
             <el-input placeholder="请输入密码" v-model="FormData.password" show-password></el-input>
-          </div>
-          <div label="验证码" prop="code" style="width: 380px;">
-            <el-input v-model="FormData.code" style="width: 172px; float: left"></el-input>
-            <!-- <Captcha /> -->
-            <el-image :src="captchaImg" class="captchaImg" @click="getCaptcha"></el-image>
-          </div>
-          <div class="btn_lable">
+          </el-form-item>
+          <el-form-item class="captcha" prop="code">
+            <h1>验证码</h1>
+            <div class="captchaBox">
+              <el-input v-model="FormData.code"></el-input>
+              <!-- <Captcha /> -->
+              <el-image :src="captchaImg" class="captchaImg" @click="getCaptcha"></el-image>
+            </div>
+          </el-form-item>
+          <el-form-item class="btn_lable">
             <el-button type="primary" @click="login()">登录</el-button>
-            <!-- <el-button type="primary" @click="registerFlag = !registerFlag">注册</el-button> -->
-          </div>
-          <div class="remember_forget">
+            <el-button type="primary" @click="cleanInput()">重置</el-button>
+          </el-form-item>
+          <el-form-item class="remember_forget">
             <el-checkbox v-model="checked">记住密码</el-checkbox>
-            <p @click="forget()">忘记密码?</p>
-          </div>
-        </div>
-        <!-- <div class="form-items" v-show="registerFlag">
-          <div class="input_lable">
-            <h1>用户名</h1>
-            <el-input v-model="FormData.account" placeholder="请输入账号"></el-input>
-          </div>
-          <div class="input_lable">
-            <h1>邮箱地址</h1>
-            <el-input v-model="FormData.account" placeholder="请输入邮箱"></el-input>
-          </div>
-          <div class="input_lable">
-            <h1>密码</h1>
-            <el-input placeholder="请输入密码" v-model="FormData.password" show-password></el-input>
-          </div>
-          <div class="input_lable">
-            <h1>确认密码</h1>
-            <el-input placeholder="请输入密码" v-model="FormData.password" show-password></el-input>
-          </div>
-          <div class="btn_lable">
-            <el-button @click="registerFlag = !registerFlag">返回</el-button>
-            <el-button type="primary" @click="register()">注册</el-button>
-          </div>
-        </div> -->
+            <el-button @click="forget()">忘记密码?</el-button>
+          </el-form-item>
+        </el-form>
       </div>
     </div>
   </div>
@@ -80,12 +62,23 @@ export default {
   data() {
     return {
       checked: false,
-      registerFlag: false,
       FormData: {
         username: '',
         password: '',
         code: '',
         key: ''
+      },
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' }
+        ],
+        code: [
+          { required: true, message: '请输入验证码', trigger: 'blur' },
+          { min: 5, max: 5, message: '长度为 5 个字符', trigger: 'blur' }
+        ]
       },
       captchaImg: null
     };
@@ -112,6 +105,9 @@ export default {
     },
     forget() {
       this.$message.info("忘记密码");
+    },
+    cleanInput() {
+      this.$refs[FormData].resetFields();
     },
     getCaptcha() {
       this.$axios.get('/captcha').then(res => {
@@ -287,17 +283,37 @@ export default {
   align-content: center;
 }
 
+
 .loginClassFlag {
-  padding: 150px 200px;
+  padding: 70px 200px;
 }
+
+
+.captcha h1 {
+  display: block;
+}
+
+.captchaBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.captcha .el-input {
+  width: 60%;
+}
+
+.captcha .captchaImg {
+  border-radius: 4px;
+}
+
 
 .input_lable {
   margin-top: 20px;
 }
 
 .form-items .el-button {
-  margin-top: 2%;
-  width: 180px;
+  width: 195px;
   border-radius: 5px;
 }
 
@@ -314,13 +330,24 @@ export default {
   justify-content: space-between;
 }
 
-.remember_forget p {
-  cursor: pointer;
-  font-size: 14px;
-  color: #409eff;
+.remember_forget .el-button {
+  border: none;
+  width: 80px;
+  margin-left: 200px;
 }
 
-.remember_forget p:hover {
-  color: #0481ff;
+.remember_forget .el-button:hover {
+  background-color: #fff;
+}
+
+@media (width <=1176px) {
+  .left {
+    display: none;
+  }
+
+  .right {
+    margin: 0 auto;
+    transition: all linear 1s;
+  }
 }
 </style>

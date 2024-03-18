@@ -17,7 +17,7 @@
                         {{ name }} &nbsp;&nbsp;<i class="fa fa-caret-down fa-1x"></i>
                     </span>
                     <el-dropdown-menu slot="dropdown">
-                        <!-- <el-dropdown-item @click.native="editPasswordDialog = true">修改密码</el-dropdown-item> -->
+                        <el-dropdown-item @click.native="editPasswordDialog = true">修改密码</el-dropdown-item>
                         <el-dropdown-item @click.native="logout()">退出系统</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
