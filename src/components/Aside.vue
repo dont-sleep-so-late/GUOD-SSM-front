@@ -61,7 +61,7 @@
                         </el-menu-item>
                     </router-link>
                 </el-submenu>
-                
+
             </el-menu>
         </el-col>
     </el-row>
@@ -75,8 +75,8 @@ export default {
         return {
             userInfo: {
                 id: "",
-                username: "" || '用户',
-                avatar: "" || require("@/assets/玛奇玛small.png"),
+                username: "",
+                avatar: "",
             },
         };
     },
@@ -99,6 +99,7 @@ export default {
         },
         getUserInfo() {
             this.userInfo.username = window.sessionStorage.getItem('username')
+            this.userInfo.avatar = window.sessionStorage.getItem('avatar')
         },
     },
 };

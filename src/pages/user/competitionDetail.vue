@@ -77,7 +77,7 @@ export default {
   },
   created() {
     this.competitionId = sessionStorage.getItem("competitionId");
-    this.userId = localStorage.getItem("userId");
+    this.userId = sessionStorage.getItem("userId");
     this.getCompetitionInfo();
     this.getApplyPeopleList();
   },
@@ -138,7 +138,7 @@ export default {
       })
     },
     getCompetitionInfo() {
-      this.$axios.get("/competition/getCompetitionInfo/" + this.competitionId + "/" + localStorage.getItem("userId")).then(res => {
+      this.$axios.get("/competition/getCompetitionInfo/" + this.competitionId + "/" + sessionStorage.getItem("userId")).then(res => {
         this.info = res.data.data.competitionInfo;
       })
     },

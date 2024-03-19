@@ -12,7 +12,7 @@ import globalWebSocket from "./global";
 
 Vue.config.productionTip = false;
 Vue.prototype.$axios = axios;
-Vue.prototype.$globalWebSocket = globalWebSocket;//全局消息订阅
+Vue.prototype.$globalWebSocket = globalWebSocket; //全局消息订阅
 
 Vue.use(ElementUI);
 

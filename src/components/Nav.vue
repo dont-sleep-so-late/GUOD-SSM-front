@@ -50,7 +50,7 @@
                 </div>
                 <el-dropdown>
                     <span class="el-dropdown-link" style="color: #fff; cursor: pointer">
-                        {{ userInfo.username }}<i class="fa fa-caret-down fa-1x"></i>
+                        {{ userInfo.username }}<i class="el-icon-arrow-down el-icon--right"></i>
                     </span>
                     <el-dropdown-menu slot="dropdown">
                         <el-dropdown-item>

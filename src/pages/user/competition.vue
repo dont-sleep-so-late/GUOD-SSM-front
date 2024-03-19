@@ -58,7 +58,7 @@ export default {
     }
   },
   created() {
-    this.userId = localStorage.getItem("userId");
+    this.userId = sessionStorage.getItem("userId");
     this.getUserCompetitionList();
   },
   methods: {

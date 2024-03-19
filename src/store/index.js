@@ -15,7 +15,7 @@ const mutations = {
   },
   SET_TOKEN: (state, token) => {
     state.token = token;
-    localStorage.setItem("token", token);
+    window.sessionStorage.setItem("token", token);
   },
 };
 //准备state对象——保存具体的数据

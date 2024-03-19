@@ -186,7 +186,7 @@ export default {
       this.dialogVisible = true;
       this.maxNum = this.tableData[id - 1].surplus;
       this.editForm.equipmentid = this.tableData[id - 1].id;
-      this.editForm.userid = localStorage.getItem("userId");
+      this.editForm.userid = sessionStorage.getItem("userId");
     }
   }
 }

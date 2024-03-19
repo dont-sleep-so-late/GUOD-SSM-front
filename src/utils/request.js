@@ -19,7 +19,8 @@ request.interceptors.request.use(
       throw new Error(
         `Expected 'config' and 'config.headers' not to be undefined`
       );
-    } else config.headers["Authorization"] = localStorage.getItem("token");
+    } else
+      config.headers["Authorization"] = window.sessionStorage.getItem("token");
 
     return config;
   },

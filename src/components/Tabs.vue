@@ -1,11 +1,6 @@
 <template>
   <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab" @tab-click="clickTab">
-    <el-tab-pane
-        v-for="(item, index) in editableTabs"
-        :key="item.name"
-        :label="item.title"
-        :name="item.name"
-    >
+    <el-tab-pane v-for="(item, index) in editableTabs" :key="item.name" :label="item.title" :name="item.name">
     </el-tab-pane>
   </el-tabs>
 </template>
@@ -20,10 +15,10 @@ export default {
   },
   computed: {
     editableTabs: {
-      get(){
+      get() {
         return this.$store.state.menus.editableTabs;
       },
-      set(val){
+      set(val) {
         this.$store.state.menus.editableTabs = val;
       }
     },
@@ -53,15 +48,14 @@ export default {
       }
       this.editableTabsValue = activeName;
       this.editableTabs = tabs.filter(tab => tab.name !== targetName);
-      this.$router.push({name: activeName});
+      this.$router.push({ name: activeName });
     },
-    clickTab(target){
-      this.$router.push({name: target.name});
+    clickTab(target) {
+      if (this.$route.name == target.name) return
+      this.$router.push({ name: target.name });
     }
   }
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -306,7 +306,7 @@ export default {
       }
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.editForm.userid = localStorage.getItem("userId");
+          this.editForm.userid = sessionStorage.getItem("userId");
           this.editForm.url = this.imgUrl;
           this.$axios.post('/sys/competition/' + (this.editForm.id?'update' : 'save'), this.editForm)
               .then(res => {
