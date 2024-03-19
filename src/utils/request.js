@@ -37,13 +37,12 @@ request.interceptors.response.use(
       return response;
     } else {
       ElMessage.Message.error(res.message ? res.message : "系统异常");
-      return Promise.reject(response.data.message);
+      return Promise.reject(response);
     }
   },
   (error) => {
     //处理http网络错误
-    const code = error;
-    console.log(error);
+    const code = error.code;
     switch (code) {
       case 404:
         //错误提示信息

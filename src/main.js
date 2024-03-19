@@ -8,9 +8,11 @@ import axios from "@/utils/request";
 import router from "./router";
 import "./style/base.css";
 import store from "@/store/index";
+import globalWebSocket from "./global";
 
 Vue.config.productionTip = false;
 Vue.prototype.$axios = axios;
+Vue.prototype.$globalWebSocket = globalWebSocket;//全局消息订阅
 
 Vue.use(ElementUI);
 

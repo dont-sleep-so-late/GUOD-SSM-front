@@ -6,10 +6,11 @@
                 <div class="userInfo">
                     <div class="userHeader">
                         <div :class="{ userAvatar: !isCollapse }">
-                            <el-avatar :size="50" shape="circle" :src="avatar" style="margin-top: 10px;"></el-avatar>
+                            <el-avatar :size="50" shape="circle" :src="userInfo.avatar"
+                                style="margin-top: 10px;"></el-avatar>
                         </div>
                         <div class="username" style="white-space: nowrap" :class="{ userName: isCollapse }">
-                            <p>{{ userName }}</p>
+                            <p>{{ userInfo.username }}</p>
                         </div>
                     </div>
                 </div>
@@ -45,6 +46,7 @@
                         </template>
                     </el-menu-item>
                 </router-link>
+
                 <el-submenu :index="menu.name" v-for="(menu, index) in menuList" :key="index">
                     <template slot="title">
                         <i :class="menu.icon"></i>
@@ -59,6 +61,7 @@
                         </el-menu-item>
                     </router-link>
                 </el-submenu>
+                
             </el-menu>
         </el-col>
     </el-row>
@@ -70,9 +73,15 @@ export default {
     name: "Aside",
     data() {
         return {
-            avatar: require("@/assets/玛奇玛small.png"),
-            userName: window.localStorage.getItem("username") || '用户',
+            userInfo: {
+                id: "",
+                username: "" || '用户',
+                avatar: "" || require("@/assets/玛奇玛small.png"),
+            },
         };
+    },
+    mounted() {
+        this.getUserInfo()
     },
     computed: {
         isCollapse() {
@@ -87,6 +96,9 @@ export default {
     methods: {
         selectMenu(item) {
             this.$store.commit("addTab", item);
+        },
+        getUserInfo() {
+            this.userInfo.username = window.sessionStorage.getItem('username')
         },
     },
 };

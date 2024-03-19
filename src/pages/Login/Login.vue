@@ -1,6 +1,6 @@
 <template>
   <div class="login">
-    <div class="container" :class="{ container_active: registerFlag }">
+    <div class="container">
       <div class="left">
         <div class="header_logo">
           <div class="_logo"><img src="@/assets/login_logo.png" /></div>
@@ -18,9 +18,8 @@
         </div>
       </div>
       <div class="right">
-        <el-form hide-required-asterisk="true" class="form-items" :model="FormData" :rules="rules" ref="FormData"
-          :class="{ loginClassFlag: !registerFlag }" v-show="!registerFlag">
-          <el-form-item label="" prop="username" class="input_lable">
+        <el-form :hide-required-asterisk="true" class="form-items" :model="FormData" :rules="rules" ref="FormData">
+          <el-form-item prop="username" class="input_lable">
             <h1>用户名</h1>
             <el-input v-model="FormData.username" placeholder="请输入账号"></el-input>
           </el-form-item>
@@ -53,10 +52,7 @@
 <script>
 import qs from 'qs'
 // import Captcha from './Captcha.vue'
-
 export default {
-
-  // eslint-disable-next-line vue/multi-word-component-names
   name: "Login",
   // components: { Captcha },
   data() {
@@ -80,28 +76,29 @@ export default {
           { min: 5, max: 5, message: '长度为 5 个字符', trigger: 'blur' }
         ]
       },
-      captchaImg: null
+      captchaImg: ''
     };
   },
   created() {
     this.getCaptcha();
-  },
-  mounted() {
-    this.draw();
   },
   methods: {
     login() {
       this.$axios.post('/login?' + qs.stringify(this.FormData)).then(res => {
         const jwt = res.headers['authorization'];
         this.$store.commit('SET_TOKEN', jwt);
+        this.getUserInfo()
         this.$router.push("/index");
       }).catch(res => {
-        this.$message.error(res.data);
         this.getCaptcha();
       })
     },
-    register() {
-      this.$message.info("注册");
+    getUserInfo() {
+      this.$axios.get("/sys/userInfo").then(res => {
+        console.log();
+        window.sessionStorage.setItem("userId", res.data.data.id);
+        window.sessionStorage.setItem("username", res.data.data.username);
+      })
     },
     forget() {
       this.$message.info("忘记密码");
@@ -115,79 +112,6 @@ export default {
         this.captchaImg = res.data.data.captchaImg;
         this.FormData.code = '';
       })
-    },
-    draw() {
-      let canvas = document.querySelector("#draw")
-      let yuan = canvas.getContext("2d");
-      let arr = [];
-      window.onresize = resizeCanvas;
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }
-      resizeCanvas();
-      /* 绘制小圆形的方法，x与y是初始位置，r是圆半径 */
-      function circle(x, y, r) {
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        /* 得一个随机颜色 */
-        this.color = `rgba(${Math.floor(Math.random() * 255)},
-                          ${Math.floor(Math.random() * 255)},
-                          ${Math.floor(Math.random() * 255)}, 0.2)`;
-        /* 圆的移动方向，random函数为随机返回一个0.0到1.0的数，x可得随机正负数，y为随机正数 */
-        this.xMove = parseInt(Math.random() * 10 - 5);
-        this.yMove = parseInt(Math.random() * 10);
-        /* 向arr数组末尾添加这个元素 */
-        arr.push(this);
-
-        /* 渲染小圆 */
-        this.render = function () {
-          yuan.beginPath();
-          yuan.arc(this.x, this.y, this.r, 0, 2 * 3.14, false);
-          yuan.fillStyle = this.color;
-          // yuan.stroke();
-          yuan.fill();
-        };
-
-        /* 更新圆形的方法 */
-        this.updated = function () {
-          this.x = this.x + this.xMove;
-          this.y = this.y + this.yMove;
-          /* 半径慢慢减少 */
-          this.r = this.r - 0.08;
-          /* 当半径小于1清除这个圆 */
-          if (this.r < 0) {
-            this.remove();
-          }
-        };
-        /* 删除小圆的函数 */
-        this.remove = function () {
-          for (let i = 0; i < arr.length; i++) {
-            if (this == arr[i]) {
-              arr.splice(i, 1);
-            }
-          }
-        };
-      }
-      /* 给画布绑定鼠标经过事件 */
-      canvas.addEventListener("mousemove", function (e) {
-        /* 传入x，y，r。offsetX距离左侧距离，..， */
-        new circle(e.offsetX, e.offsetY, 10);
-      });
-
-      /* 定时器渲染小圆，开始动画 ，30毫秒一次 */
-      setInterval(function () {
-
-        /* 清屏 */
-        yuan.clearRect(0, 0, canvas.width, canvas.height);
-        /* 循环数组，给每个小圆更新和渲染 */
-        for (let i = 0; i < arr.length; i++) {
-          arr[i].render();
-          /* 更新 */
-          arr[i].updated();
-        }
-      }, 30);
     },
   },
 };

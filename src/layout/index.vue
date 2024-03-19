@@ -24,7 +24,47 @@ import Tabs from '../components/Tabs.vue';
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'layout',
-    components: { Aside, Nav, Tabs }
+    components: { Aside, Nav, Tabs },
+    created() {
+        if (this.userId != null) {
+            this.initWebSocket();
+        }
+    },
+    methods: {
+        initWebSocket() {
+            let that = this;
+            if ("WebSocket" in window) {
+                console.log("您的浏览器支持 WebSocket!");
+                let socketUrl = "http://8.134.10.8:8081/websocket/" + this.userId;
+                console.log(socketUrl);
+                socketUrl = socketUrl.replace("https", "ws").replace("http", "ws");
+                that.ws = new WebSocket(socketUrl);
+                that.$globalWebSocket.setWs(that.ws);
+                that.ws.onopen = function () {
+                    console.log('webSocket connect successful')
+                };
+                that.ws.onclose = function () {
+                    console.log("webSocket connect closed");
+                    setTimeout(() => {
+                        that.initWebSocket();
+                    }, 2000);
+                };
+            } else {
+                console.log("您的浏览器不支持 WebSocket!");
+            }
+        }
+    },
+    watch: {
+        $route(to, from) {
+            if (to.path != '/login') {
+                let obj = {
+                    name: to.name,
+                    title: to.meta.title
+                }
+                this.$store.commit("addTab", obj);
+            }
+        }
+    }
 }
 </script>
 
