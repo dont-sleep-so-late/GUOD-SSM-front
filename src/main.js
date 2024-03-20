@@ -9,6 +9,7 @@ import router from "./router";
 import "./style/base.css";
 import store from "@/store/index";
 import globalWebSocket from "./global";
+import global from "./globalFun";
 
 Vue.config.productionTip = false;
 Vue.prototype.$axios = axios;

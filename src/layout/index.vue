@@ -6,7 +6,7 @@
             </el-aside>
             <el-container>
                 <el-header>
-                    <Nav />
+                    <Header />
                 </el-header>
                 <el-main>
                     <Tabs />
@@ -19,12 +19,12 @@
 
 <script>
 import Aside from '../components/Aside.vue';
-import Nav from '../components/Nav.vue';
+import Header from '../components/Header.vue';
 import Tabs from '../components/Tabs.vue';
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'layout',
-    components: { Aside, Nav, Tabs },
+    components: { Aside, Header, Tabs },
     created() {
         if (this.userId != null) {
             this.initWebSocket();

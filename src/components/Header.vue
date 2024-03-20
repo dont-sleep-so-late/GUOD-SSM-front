@@ -1,5 +1,5 @@
 <template>
-    <div class="Nav">
+    <div class="Header">
         <el-row type="flex" justify="space-between" align="middle">
             <el-col :span="6" type="flex">
                 <div class="toggle-button" @click="changeCollapse()">
@@ -69,7 +69,7 @@ import screenfull from "screenfull";
 
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
-    name: 'Nav',
+    name: 'Header',
     data() {
         return {
             logo: require("@/assets/logo.png"),
@@ -84,8 +84,8 @@ export default {
         };
     },
     created() {
-        this.getBorrowNum();
         this.getUserInfo()
+        this.getBorrowNum();
     },
     mounted() {
         this.handleMsg();
@@ -165,6 +165,7 @@ export default {
             })
         },
         getCompensateNum() {
+            console.log(this.userInfo.id);
             this.$axios.get("/compensate/getCompensateNum/" + this.userInfo.id).then(res => {
                 this.num += res.data.data.compensateNum;
                 this.compensateList = res.data.data.compensateList;
@@ -196,7 +197,7 @@ export default {
 </script>
 
 <style scoped>
-.Nav {
+.Header {
     background-color: #2661ef;
 }
 

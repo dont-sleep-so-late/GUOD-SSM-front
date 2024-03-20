@@ -401,3 +401,4 @@ export default {
 <style scoped>
 
 </style>
+./user.vue

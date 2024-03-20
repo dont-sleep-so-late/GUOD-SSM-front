@@ -88,15 +88,17 @@ export default {
         const jwt = res.headers['authorization'];
         this.$store.commit('SET_TOKEN', jwt);
         this.getUserInfo()
-
-        this.$router.push("/index");
+        setTimeout(() => {
+          this.$router.push({
+            name: "index"
+          });
+        }, 500);
       }).catch(res => {
         this.getCaptcha();
       })
     },
     getUserInfo() {
       this.$axios.get("/sys/userInfo").then(res => {
-        console.log();
         window.sessionStorage.setItem("userId", res.data.data.id);
         window.sessionStorage.setItem("username", res.data.data.username);
         window.sessionStorage.setItem("avatar", res.data.data.avatar);
