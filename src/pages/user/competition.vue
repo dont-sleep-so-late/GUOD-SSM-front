@@ -1,10 +1,10 @@
 <template>
   <div>
     <div v-for="competition in this.competitionList" class="competition">
-      <div style="float: left">
+      <div>
         <el-image :src="competition.url"></el-image>
       </div>
-      <div style="display: inline-block;">
+      <div class="competitionInfo">
         <h3>
           <el-tag v-if="new Date() < new Date(competition.starttime)" type="warning">报名中...</el-tag>
           <el-tag v-if="new Date(competition.starttime) <= new Date() && new Date() <= new Date(competition.endtime)"
@@ -89,13 +89,16 @@ export default {
 
 <style scoped>
 .competition {
+  width: 100%;
   border: 5px solid #fafafa;
   padding: 20px;
   margin-bottom: 20px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
 }
-
+.competitionInfo{
+  width: 60%;
+}
 h3 {
   font-size: 25px;
   margin: 10px 0;
@@ -113,10 +116,11 @@ p {
 }
 
 .info {
-  width: 200px;
+  width: 20%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 100%;
 }
 
 .info .el-button {

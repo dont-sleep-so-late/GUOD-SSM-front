@@ -6,7 +6,7 @@
                 <el-tab-pane v-for="place in this.placeList" :key="place" :label="place.place">
                     <el-image style="float: left; margin-right:80px;height: 170px; width: 300px;"
                         :src="place.url"></el-image>
-                    <div style="float: left;">
+                    <div class="detail">
                         <p>联系人： {{ place.people }}</p>
                         <p>联系电话： {{ place.phone }}</p>
                         <p>场地地址： {{ place.address }}</p>
@@ -154,7 +154,7 @@
             <div slot="header" class="clearfix">
                 <span>器材</span>
                 <router-link to='/user/equipment'>
-                    <el-button style="float: right; cursor: pointer; padding: 3px 0" type="text">更多</el-button>
+                    <el-button style=" cursor: pointer; padding: 3px 0" type="text">更多</el-button>
                 </router-link>
             </div>
             <div id="echarts1"></div>
@@ -519,6 +519,15 @@ export default {
 /*每一条公告*/
 .left-notice .el-tabs {
     height: 245px;
+}
+
+.detail {
+    padding: 20px 0;
+}
+
+.detail p {
+    font-size: 16px;
+    line-height: 30px;
 }
 
 .el-tabs {

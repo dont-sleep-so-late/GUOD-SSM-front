@@ -178,7 +178,7 @@ export default {
       console.log(param);
       const formData = new FormData()
       formData.append('file', param.file)
-      this.$axios.post('/upload/img', formData, { headers: { "Content-Type": "multipart/form-data" } }).then(res => {
+      this.$axios.post('/upload/img', formData, { header: { "Content-Type": "multipart/form-data" } }).then(res => {
         this.imgUrl = res.data.data.fileUrl;
         console.log(this.editForm.url);
       })
