@@ -9,9 +9,6 @@
                             <el-avatar :size="50" shape="circle" :src="userInfo.avatar"
                                 style="margin-top: 10px;"></el-avatar>
                         </div>
-                        <div class="username" style="white-space: nowrap" :class="{ userName: isCollapse }">
-                            <p>{{ userInfo.username }}</p>
-                        </div>
                     </div>
                 </div>
                 <router-link to="/index">
@@ -142,8 +139,8 @@ export default {
     font-weight: bold;
     background-color: #2661ef !important;
     border-radius: 2px;
-    line-height: 50px;
     box-sizing: border-box;
+    margin-left: 2px;
 }
 
 .el-menu-item:hover i {
@@ -152,5 +149,7 @@ export default {
 
 .el-menu-item:hover {
     color: #409EFF !important;
+    transition: 0.4s linear;
+    margin-left: 2px;
 }
 </style>

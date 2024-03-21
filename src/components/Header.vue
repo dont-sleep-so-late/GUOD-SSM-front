@@ -165,7 +165,6 @@ export default {
             })
         },
         getCompensateNum() {
-            console.log(this.userInfo.id);
             this.$axios.get("/compensate/getCompensateNum/" + this.userInfo.id).then(res => {
                 this.num += res.data.data.compensateNum;
                 this.compensateList = res.data.data.compensateList;
@@ -186,6 +185,10 @@ export default {
                     window.localStorage.clear();
                     window.sessionStorage.clear();
                     this.$store.commit("resetState");
+                    this.$message({
+                        message: '注销成功',
+                        type: 'success'
+                    })
                     this.$router.push("/login");
                 })
             }).catch(() => {

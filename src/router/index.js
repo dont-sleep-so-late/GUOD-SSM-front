@@ -129,7 +129,6 @@ router.beforeEach((to, from, next) => {
             });
           }
         });
-
         router.addRoutes(newRoutes);
         hasRoute = true;
         store.commit("changeRoutesStatus", hasRoute);

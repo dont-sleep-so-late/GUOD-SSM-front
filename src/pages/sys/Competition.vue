@@ -2,10 +2,7 @@
   <div>
     <el-form :inline="true">
       <el-form-item>
-        <el-input
-            v-model="searchForm.competitionName"
-            placeholder="赛事名称"
-            clearable>
+        <el-input v-model="searchForm.competitionName" placeholder="赛事名称" clearable>
         </el-input>
       </el-form-item>
 
@@ -18,59 +15,34 @@
       </el-form-item>
       <el-form-item>
         <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
-          <el-button type="danger" slot="reference" :disabled="delBtlStatus" v-if="hasAuth('sys:competition:delete')">批量删除</el-button>
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:competition:delete')">批量删除</el-button>
         </el-popconfirm>
       </el-form-item>
     </el-form>
 
-    <el-table
-        ref="multipleTable"
-        :data="tableData"
-        tooltip-effect="dark"
-        style="width: 100%"
-        border
-        stripe
-        @selection-change="handleSelectionChange">
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange">
 
-      <el-table-column
-          type="selection"
-          width="55">
+      <el-table-column type="selection" width="55">
       </el-table-column>
 
-      <el-table-column
-          label="赛事名称"
-          width="120"
-          prop="name">
+      <el-table-column label="赛事名称" width="120" prop="name">
       </el-table-column>
 
-      <el-table-column
-          label="赛事图片"
-          width="120"
-          prop="url">
+      <el-table-column label="赛事图片" width="120" prop="url">
         <template slot-scope="scope">
           <el-image v-if="scope.row.url" :src="scope.row.url"></el-image>
         </template>
       </el-table-column>
 
-      <el-table-column
-          prop="username"
-          label="赛事创建人">
+      <el-table-column prop="username" label="赛事创建人">
       </el-table-column>
-      <el-table-column
-          prop="place"
-          label="赛事地点">
+      <el-table-column prop="place" label="赛事地点">
       </el-table-column>
-      <el-table-column
-          prop="starttime"
-          label="赛事开始时间"
-      ></el-table-column>
-      <el-table-column
-          prop="endtime"
-          label="赛事结束时间"
-      ></el-table-column>
-      <el-table-column
-          prop="status"
-          label="赛事状态">
+      <el-table-column prop="starttime" label="赛事开始时间"></el-table-column>
+      <el-table-column prop="endtime" label="赛事结束时间"></el-table-column>
+      <el-table-column prop="status" label="赛事状态">
         <template slot-scope="scope">
           <el-tag size="small" v-if="scope.row.status === 0" type="success">发布</el-tag>
           <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">未发布</el-tag>
@@ -78,22 +50,17 @@
         </template>
 
       </el-table-column>
-      <el-table-column
-          prop="created"
-          width="200"
-          label="创建时间"
-      >
+      <el-table-column prop="created" width="200" label="创建时间">
       </el-table-column>
-      <el-table-column
-          prop="icon"
-          width="250"
-          label="操作">
+      <el-table-column prop="icon" width="250" label="操作">
         <template slot-scope="scope">
-          <el-button type="text" v-if="hasAuth('sys:competition:update')" @click="editHandle(scope.row.id)">编辑</el-button>
+          <el-button type="text" v-if="hasAuth('sys:competition:update')"
+            @click="editHandle(scope.row.id)">编辑</el-button>
           <el-divider direction="vertical" v-if="hasAuth('sys:competition:update')"></el-divider>
 
           <template>
-            <el-popconfirm title="这是一段内容确定删除吗？" v-if="hasAuth('sys:competition:delete')" @confirm="delHandle(scope.row.id)">
+            <el-popconfirm title="这是一段内容确定删除吗？" v-if="hasAuth('sys:competition:delete')"
+              @confirm="delHandle(scope.row.id)">
               <el-button type="text" slot="reference">删除</el-button>
             </el-popconfirm>
           </template>
@@ -102,21 +69,12 @@
 
     </el-table>
 
-    <el-pagination style="margin-top: 10px;"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[10, 20, 50, 100]"
-        :current-page="current"
-        :page-size="size"
-        :total="total">
+    <el-pagination style="margin-top: 10px;" @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
     </el-pagination>
     <!--新增对话框-->
-    <el-dialog
-        title="提示"
-        :visible.sync="dialogVisible"
-        width="600px"
-        :before-close="handleClose">
+    <el-dialog title="提示" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
 
       <el-form :model="editForm" :rules="editFormRules" ref="editForm">
         <el-form-item label="赛事名称" prop="name" label-width="120px">
@@ -128,18 +86,21 @@
         </el-form-item>
 
         <el-form-item label="赛事开始时间" label-width="120px">
-          <el-date-picker v-model="editForm.starttime" type="datetime" placeholder="选择赛事开始时间" :picker-options="pickerOptions"></el-date-picker>
+          <el-date-picker v-model="editForm.starttime" type="datetime" placeholder="选择赛事开始时间"
+            :picker-options="pickerOptions"></el-date-picker>
         </el-form-item>
 
         <el-form-item label="赛事结束时间" label-width="120px">
-          <el-date-picker v-model="editForm.endtime" type="datetime" placeholder="选择赛事开始时间" :picker-options="pickerOptions"></el-date-picker>
+          <el-date-picker v-model="editForm.endtime" type="datetime" placeholder="选择赛事开始时间"
+            :picker-options="pickerOptions"></el-date-picker>
         </el-form-item>
 
-        <el-form-item label="赛事介绍"  prop="description" label-width="120px">
-          <el-input type="textarea" :rows="7" placeholder="请输入赛事介绍" v-model="editForm.description" autocomplete="off"></el-input>
+        <el-form-item label="赛事介绍" prop="description" label-width="120px">
+          <el-input type="textarea" :rows="7" placeholder="请输入赛事介绍" v-model="editForm.description"
+            autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item label="状态"  prop="status" label-width="120px">
+        <el-form-item label="状态" prop="status" label-width="120px">
           <el-radio-group v-model="editForm.status">
             <el-radio :label="0">发布</el-radio>
             <el-radio :label="1">未发布</el-radio>
@@ -148,13 +109,8 @@
         </el-form-item>
 
         <el-form-item label="赛事图片" label-width="120px">
-          <el-upload
-              class="avatar-uploader"
-              :show-file-list="false"
-              action="action"
-              :http-request="upload"
-              :on-success="handleAvatarSuccess"
-              :before-upload="beforeAvatarUpload">
+          <el-upload class="avatar-uploader" :show-file-list="false" action="action" :http-request="upload"
+            :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
             <el-image v-if="this.imgUrl" :src="this.imgUrl" class="avatar"></el-image>
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
@@ -184,16 +140,16 @@ export default {
       tableData: [],
       editFormRules: {
         name: [
-          {required: true, message: '请输入赛事名称', trigger: 'blur'}
+          { required: true, message: '请输入赛事名称', trigger: 'blur' }
         ],
         place: [
-          {required: true, message: '请输入赛事地点', trigger: 'blur'}
+          { required: true, message: '请输入赛事地点', trigger: 'blur' }
         ],
         status: [
-          {required: true, message: '请选择状态', trigger: 'blur'}
+          { required: true, message: '请选择状态', trigger: 'blur' }
         ],
         description: [
-          {required: true, message: '请输入赛事介绍', trigger: 'blur'}
+          { required: true, message: '请输入赛事介绍', trigger: 'blur' }
         ]
       },
       pickerOptions: {
@@ -218,11 +174,11 @@ export default {
         this.$refs.multipleTable.clearSelection();
       }
     },
-    upload (param) {
+    upload(param) {
       console.log(param);
       const formData = new FormData()
       formData.append('file', param.file)
-      this.$axios.post('/upload/img',formData,{headers: {'Content-Type': 'multipart/form-data'}}).then(res => {
+      this.$axios.post('/upload/img', formData, { headers: { "Content-Type": "multipart/form-data" } }).then(res => {
         this.imgUrl = res.data.data.fileUrl;
         console.log(this.editForm.url);
       })
@@ -242,9 +198,9 @@ export default {
       let date = new Date(time);
       let year = date.getFullYear();
       let month =
-          date.getMonth() + 1 < 10
-              ? "0" + (date.getMonth() + 1)
-              : date.getMonth() + 1;
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
       let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
       return (year + "-" + month + "-" + day);
     },
@@ -296,7 +252,7 @@ export default {
     },
 
     submitForm(formName) {
-      if (new Date(this.editForm.starttime) >= new Date(this.editForm.endtime)){
+      if (new Date(this.editForm.starttime) >= new Date(this.editForm.endtime)) {
         this.$message({
           showClose: true,
           message: '竞赛时间不规范',
@@ -308,20 +264,20 @@ export default {
         if (valid) {
           this.editForm.userid = sessionStorage.getItem("userId");
           this.editForm.url = this.imgUrl;
-          this.$axios.post('/sys/competition/' + (this.editForm.id?'update' : 'save'), this.editForm)
-              .then(res => {
-                this.$message({
-                  showClose: true,
-                  message: '恭喜你，操作成功',
-                  type: 'success',
-                  onClose:() => {
-                    this.getCompetitionList()
-                  }
-                });
-                this.dialogVisible = false
-                this.imgUrl = '';
-                this.editForm = {}
-              })
+          this.$axios.post('/sys/competition/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getCompetitionList()
+                }
+              });
+              this.dialogVisible = false
+              this.imgUrl = '';
+              this.editForm = {}
+            })
         } else {
           console.log('error submit!!');
           return false;
@@ -350,7 +306,7 @@ export default {
           showClose: true,
           message: '恭喜你，操作成功',
           type: 'success',
-          onClose:() => {
+          onClose: () => {
             this.getCompetitionList()
           }
         });
@@ -368,9 +324,11 @@ export default {
   position: relative;
   overflow: hidden;
 }
+
 .avatar-uploader .el-upload:hover {
   border-color: #409EFF;
 }
+
 .avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
@@ -380,6 +338,7 @@ export default {
   text-align: center;
   border: 1px dashed #d9d9d9;
 }
+
 .avatar {
   width: 178px;
   height: 178px;

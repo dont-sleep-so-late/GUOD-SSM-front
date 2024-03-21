@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div class="login" v-loading.fullscreen.lock="fullscreenLoading">
     <div class="container">
       <div class="left">
         <div class="header_logo">
@@ -36,11 +36,11 @@
             </div>
           </el-form-item>
           <el-form-item class="btn_lable">
-            <el-button type="primary" @click="login()">登录</el-button>
+            <el-button type="primary" @click="login()" v-loading.fullscreen.lock="fullscreenLoading">登录</el-button>
             <el-button type="primary" @click="cleanInput()">重置</el-button>
           </el-form-item>
           <el-form-item class="remember_forget">
-            <el-checkbox v-model="checked">记住密码</el-checkbox>
+            <el-checkbox v-model="isChecked" @click="getCheck()">记住密码</el-checkbox>
             <el-button @click="forget()">忘记密码?</el-button>
           </el-form-item>
         </el-form>
@@ -57,7 +57,7 @@ export default {
   // components: { Captcha },
   data() {
     return {
-      checked: false,
+      isChecked: false,
       FormData: {
         username: '',
         password: '',
@@ -76,26 +76,53 @@ export default {
           { min: 5, max: 5, message: '长度为 5 个字符', trigger: 'blur' }
         ]
       },
-      captchaImg: ''
+      captchaImg: '',
+      fullscreenLoading: false
     };
   },
   created() {
     this.getCaptcha();
+    this.isChecked = window.localStorage.getItem("isChecked")
+  },
+  watch: {
+    isChecked: {
+      immediate: true,
+      handler(newValue, oldValue) {
+        window.localStorage.setItem("isChecked", this.isChecked)
+      }
+    }
   },
   methods: {
+
     login() {
-      this.$axios.post('/login?' + qs.stringify(this.FormData)).then(res => {
-        const jwt = res.headers['authorization'];
-        this.$store.commit('SET_TOKEN', jwt);
-        this.getUserInfo()
-        setTimeout(() => {
-          this.$router.push({
-            name: "index"
-          });
-        }, 500);
-      }).catch(res => {
-        this.getCaptcha();
-      })
+      this.$refs.FormData.validate((valid) => {
+        if (valid) {
+          this.$axios.post('/login?' + qs.stringify(this.FormData)).then(res => {
+            const jwt = res.headers['authorization'];
+            this.$store.commit('SET_TOKEN', jwt);
+            this.getUserInfo();
+            this.fullscreenLoading = true;
+            setTimeout(() => {
+              this.fullscreenLoading = false;
+              let message = "登录成功，欢迎 " + window.sessionStorage.getItem("username");
+              this.$message({
+                message: message,
+                type: 'success'
+              })
+              this.$router.replace('index');
+            }, 1000);
+          }).catch(res => {
+            this.getCaptcha();
+          })
+        } else {
+          this.$message({
+            message: '登录失败',
+            type: 'warning'
+          })
+          return false;
+        }
+      });
+
     },
     getUserInfo() {
       this.$axios.get("/sys/userInfo").then(res => {
@@ -108,7 +135,8 @@ export default {
       this.$message.info("忘记密码");
     },
     cleanInput() {
-      this.$refs[FormData].resetFields();
+      console.log(this.$refs);
+      this.$refs.FormData.resetFields();
     },
     getCaptcha() {
       this.$axios.get('/captcha').then(res => {
