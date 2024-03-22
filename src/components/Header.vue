@@ -182,7 +182,6 @@ export default {
             }).then(() => {
                 this.$axios.post("/logout").then(res => {
                     // 清除缓存
-                    window.localStorage.clear();
                     window.sessionStorage.clear();
                     this.$store.commit("resetState");
                     this.$message({
