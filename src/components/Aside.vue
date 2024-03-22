@@ -6,8 +6,7 @@
                 <div class="userInfo">
                     <div class="userHeader">
                         <div :class="{ userAvatar: !isCollapse }">
-                            <el-avatar :size="50" shape="circle" :src="userInfo.avatar"
-                                style="margin-top: 10px;"></el-avatar>
+                            <el-avatar :size="55" shape="circle" :src="userInfo.avatar"></el-avatar>
                         </div>
                     </div>
                 </div>

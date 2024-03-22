@@ -109,8 +109,8 @@ export default {
                 message: message,
                 type: 'success'
               })
-              this.$router.replace('index');
-            }, 1000);
+              this.$router.push('index');
+            }, 2500);
           }).catch(res => {
             this.getCaptcha();
           })
