@@ -5,6 +5,8 @@ import ElMessage from "element-ui";
 const request = axios.create({
   // 设置接口请求的前缀地址
   baseURL: "http://8.134.10.8:8081/",
+  // baseURL: "http://localhost:8081/",
+
   // 请求超时时间：50s
   timeout: 50000,
   headers: { "Content-Type": "application/json;charset=utf-8" },

@@ -98,10 +98,10 @@ router.beforeEach((to, from, next) => {
   let hasRoute = store.state.menus.hasRoute;
   let token = window.sessionStorage.getItem("token");
 
-  if (to.path == "/login") {
+  if (to.path == "/Login") {
     next();
   } else if (!token) {
-    next({ path: "/login" });
+    next({ path: "/Login" });
   } else if (token && !hasRoute) {
     axios
       .get("/sys/menu/nav", {

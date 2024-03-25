@@ -30,7 +30,7 @@
           <el-form-item class="captcha" prop="code">
             <h1>验证码</h1>
             <div class="captchaBox">
-              <el-input v-model="FormData.code"></el-input>
+              <el-input @keyup.enter.native="login" v-model="FormData.code"></el-input>
               <!-- <Captcha /> -->
               <el-image :src="captchaImg" class="captchaImg" @click="getCaptcha"></el-image>
             </div>
@@ -93,11 +93,10 @@ export default {
     }
   },
   methods: {
-
-    login() {
-      this.$refs.FormData.validate((valid) => {
+    async login() {
+      this.$refs.FormData.validate(async (valid) => {
         if (valid) {
-          this.$axios.post('/login?' + qs.stringify(this.FormData)).then(res => {
+          await this.$axios.post('/login?' + qs.stringify(this.FormData)).then(res => {
             const jwt = res.headers['authorization'];
             this.$store.commit('SET_TOKEN', jwt);
             this.getUserInfo();
@@ -109,8 +108,8 @@ export default {
                 message: message,
                 type: 'success'
               })
-              this.$router.push('index');
-            }, 2500);
+              this.$router.replace('index');
+            }, 1000);
           }).catch(res => {
             this.getCaptcha();
           })
@@ -124,8 +123,8 @@ export default {
       });
 
     },
-    getUserInfo() {
-      this.$axios.get("/sys/userInfo").then(res => {
+    async getUserInfo() {
+      await this.$axios.get("/sys/userInfo").then(res => {
         window.sessionStorage.setItem("userId", res.data.data.id);
         window.sessionStorage.setItem("username", res.data.data.username);
         window.sessionStorage.setItem("avatar", res.data.data.avatar);
