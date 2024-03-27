@@ -116,7 +116,6 @@ router.beforeEach((to, from, next) => {
         store.commit("setPermList", res.data.data.authorities);
         //动态绑定路由
         let newRoutes = router.options.routes;
-        console.log(newRoutes, "前");
         res.data.data.nav.forEach((menu) => {
           if (menu.children) {
             menu.children.forEach((e) => {

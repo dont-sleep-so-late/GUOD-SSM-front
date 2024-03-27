@@ -39,10 +39,6 @@
             <el-button type="primary" @click="login()" v-loading.fullscreen.lock="fullscreenLoading">登录</el-button>
             <el-button type="primary" @click="cleanInput()">重置</el-button>
           </el-form-item>
-          <el-form-item class="remember_forget">
-            <el-checkbox v-model="isChecked" @click="getCheck()">记住密码</el-checkbox>
-            <el-button @click="forget()">忘记密码?</el-button>
-          </el-form-item>
         </el-form>
       </div>
     </div>
@@ -57,7 +53,6 @@ export default {
   // components: { Captcha },
   data() {
     return {
-      isChecked: false,
       FormData: {
         username: '',
         password: '',
@@ -82,15 +77,6 @@ export default {
   },
   created() {
     this.getCaptcha();
-    this.isChecked = window.localStorage.getItem("isChecked")
-  },
-  watch: {
-    isChecked: {
-      immediate: true,
-      handler(newValue, oldValue) {
-        window.localStorage.setItem("isChecked", this.isChecked)
-      }
-    }
   },
   methods: {
     async login() {
@@ -108,7 +94,7 @@ export default {
                 message: message,
                 type: 'success'
               })
-              this.$router.replace('index');
+              this.$router.replace('/index').catch((err) => { this.$router.replace('/index').catch((err) => { }) })
             }, 1000);
           }).catch(res => {
             this.getCaptcha();
@@ -123,6 +109,7 @@ export default {
       });
 
     },
+
     async getUserInfo() {
       await this.$axios.get("/sys/userInfo").then(res => {
         window.sessionStorage.setItem("userId", res.data.data.id);
@@ -231,7 +218,7 @@ export default {
 }
 
 .form-items {
-  padding: 80px 200px;
+  padding: 140px 200px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -262,10 +249,6 @@ export default {
   border-radius: 4px;
 }
 
-
-.input_lable {
-  margin-top: 20px;
-}
 
 .form-items .el-button {
   width: 195px;

@@ -188,7 +188,9 @@ export default {
                         message: '注销成功',
                         type: 'success'
                     })
-                    this.$router.push("/login");
+                    this.$router.push("/login").catch((err) => {
+                        this.$router.push("/login").catch((err) => { })
+                    })
                 })
             }).catch(() => {
                 return false;
