@@ -18,7 +18,7 @@
                 <el-popover placement="left-end" :width="300" trigger="click">
                     <div class="notice_item"
                         v-for="notice in (this.borrowList.length > 0 ? this.borrowList : this.compensateList)"
-                        :key="notice">
+                        :key="notice.id">
                         <div v-if="notice.equipmentid">
                             <span class="info">
                                 {{ '一条来自 ' + notice.username + ' 的器材申请，等待您的审批！！！ ' }}
@@ -105,7 +105,7 @@ export default {
         handleMsg() {
             this.$globalWebSocket.ws.onmessage = this.getMessage
         },
-        getMessage: function (e) {
+        getMessage(e) {
             this.$notify.info({
                 title: '通知',
                 message: e.data

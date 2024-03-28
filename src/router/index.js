@@ -12,14 +12,6 @@ const router = new Router({
   base: process.env.BASE_URL,
   routes: [
     {
-      path: "/Login",
-      name: "Login",
-      meta: {
-        title: "登录",
-      },
-      component: () => import("@/pages/Login/Login.vue"),
-    },
-    {
       path: "/",
       name: "layout",
       redirect: "index",
@@ -91,6 +83,14 @@ const router = new Router({
         },
       ],
     },
+    {
+      path: "/Login",
+      name: "Login",
+      meta: {
+        title: "登录",
+      },
+      component: () => import("@/pages/Login/Login.vue"),
+    },
   ],
 });
 
@@ -123,7 +123,7 @@ router.beforeEach((to, from, next) => {
               let route = menuToRoute(e);
               //把路由添加到路由管理中
               if (route) {
-                newRoutes[1].children.push(route);
+                newRoutes[0].children.push(route);
               }
             });
           }

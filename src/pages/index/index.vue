@@ -3,7 +3,7 @@
         <noticeComponent v-if="notice" :text="notice" @click="openTip" />
         <div class="left-notice">
             <el-tabs style="float: left" type="border-card">
-                <el-tab-pane v-for="place in this.placeList" :key="place" :label="place.place">
+                <el-tab-pane v-for="place in this.placeList" :key="place.id" :label="place.place">
                     <el-image style="float: left; margin-right:80px;height: 170px; width: 300px;"
                         :src="place.url"></el-image>
                     <div class="detail">
@@ -160,7 +160,7 @@
             <div id="echarts1"></div>
         </el-card>
         <el-dialog title="预约" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
-            <el-form :model="orderForm" ref="orderForm">
+            <el-form :model="orderForm.radio" ref="orderForm">
                 <el-form-item label="预约状态" prop="title" label-width="100px">
                     <el-radio v-model="orderForm.radio" label="2">预约</el-radio>
                     <el-radio v-model="orderForm.radio" label="1">禁止</el-radio>
@@ -204,11 +204,11 @@ export default {
         }
     },
     created() {
+        this.getPlaceStateList();
         this.userId = sessionStorage.getItem("userId");
         this.getUserCompetitionList();
         this.getNoticeList();
         this.getPlaceList();
-        this.getPlaceStateList();
     },
     mounted() {
         setTimeout(() => {
@@ -243,7 +243,8 @@ export default {
             });
         },
         sysOrderPlace() {
-            if (this.orderForm.radio != 1 || this.orderForm.radio != 2) {
+            console.log(this.orderForm.radio);
+            if (this.orderForm.radio == null) {
                 this.$message({
                     type: 'error',
                     message: '请选择预约状态',
