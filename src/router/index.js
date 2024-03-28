@@ -18,7 +18,7 @@ const router = new Router({
       component: () => import("@/layout/index.vue"),
       children: [
         {
-          path: "/index",
+          path: "index",
           name: "index",
           meta: {
             title: "首页",
@@ -26,7 +26,7 @@ const router = new Router({
           component: () => import("@/pages/index/index.vue"),
         },
         {
-          path: "/user/equipment",
+          path: "user/equipment",
           name: "equipment",
           meta: {
             title: "器材列表",
@@ -34,7 +34,7 @@ const router = new Router({
           component: () => import("@/pages/user/equipment.vue"),
         },
         {
-          path: "/user/competition",
+          path: "user/competition",
           name: "competition",
           meta: {
             title: "竞赛列表",
@@ -42,7 +42,7 @@ const router = new Router({
           component: () => import("@/pages/user/competition.vue"),
         },
         {
-          path: "/user/competitionDetail",
+          path: "user/competitionDetail",
           name: "competitionDetail",
           meta: {
             title: "竞赛详情",
@@ -50,7 +50,7 @@ const router = new Router({
           component: () => import("@/pages/user/competitionDetail.vue"),
         },
         {
-          path: "/user/order",
+          path: "user/order",
           name: "order",
           meta: {
             title: "我的订单",
@@ -58,7 +58,7 @@ const router = new Router({
           component: () => import("@/pages/user/order.vue"),
         },
         {
-          path: "/notice/Details",
+          path: "notice/Details",
           name: "Details",
           meta: {
             title: "公告详情",
@@ -66,7 +66,7 @@ const router = new Router({
           component: () => import("@/pages/notice/Details.vue"),
         },
         {
-          path: "/notice/noticeList",
+          path: "notice/noticeList",
           name: "noticeList",
           meta: {
             title: "公告列表",
@@ -74,7 +74,7 @@ const router = new Router({
           component: () => import("@/pages/notice/noticeList.vue"),
         },
         {
-          path: "/userCenter",
+          path: "userCenter",
           name: "UserCenter",
           meta: {
             title: "个人中心",

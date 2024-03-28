@@ -38,7 +38,7 @@
 
       <el-table-column prop="code" label="角色名称">
         <template slot-scope="scope">
-          <el-tag size="small" type="info" v-for="item in scope.row.sysRoles" :key="item">{{ item.name }}</el-tag>
+          <el-tag size="small" type="info" v-for="item in scope.row.sysRoles" :key="item.id">{{ item.name }}</el-tag>
         </template>
       </el-table-column>
 
