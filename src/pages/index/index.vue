@@ -93,7 +93,7 @@
                             20:00
                         </span>
                     </div>
-                    <div v-for="vdState in this.placeStateList[this.dateIndex].vdstateList" class="bd">
+                    <div v-for="vdState in this.placeStateList[this.dateIndex]?.vdstateList" class="bd">
                         <span>{{ vdState.placeName }}</span>
                         <span v-for="idx in vdState.vdstatest.length" :key="idx">
                             <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 0 && !hasAuth('sys:appointment:forbid')"
