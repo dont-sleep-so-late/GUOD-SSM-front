@@ -2,30 +2,38 @@
     <div id="main">
         <noticeComponent v-if="notice" :text="notice" @click="openTip" />
         <div class="left-notice">
-            <el-tabs style="float: left" type="border-card">
-                <el-tab-pane v-for="place in this.placeList" :key="place.id" :label="place.place">
-                    <el-image style="float: left; margin-right:80px;height: 170px; width: 300px;"
-                        :src="place.url"></el-image>
-                    <div class="detail">
-                        <p>联系人： {{ place.people }}</p>
-                        <p>联系电话： {{ place.phone }}</p>
-                        <p>场地地址： {{ place.address }}</p>
-                        <p>{{ place.description }}</p>
+            <el-tabs style="float: left; margin-bottom: 20px; width: 98%; height: 370px;" type="border-card">
+                <div style="float: left; width: 50%; height: 100%; padding: 20px;">
+                    <el-avatar :size="155" shape="circle" :src="userInfo.avatar" style="float: left; margin-right: 30px;"></el-avatar>
+                    <div style="margin-top: 20px;">
+                        <span style="display: block; font-size: 25px;">您好，{{ userInfo.username }}，请开始一天的工作吧</span>
+                        <span style="display: block; font-size: 25px; margin-top: 10px;">当前时间:{{ nowTime }}</span>
                     </div>
-                </el-tab-pane>
+                    <div style="margin-top: 70px; width: 600px;">
+                        <div slot="header" class="clearfix">
+                            <h3>通知公告</h3>
+                        </div>
+                        <br>
+                        <div v-for="notice in this.noticeList.slice(0, 3)" class="text item" @click="toNoticeDetail(notice.id)">
+                            <span class="title">{{ notice.title.length > 30 ? notice.title.substring(0, 30) + "..." : notice.title }}</span>
+                            <span class="time">{{ dateFormat(notice.created) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="float: right;height: 100%;overflow: hidden;">
+                    <img style="width: 700px; height: 700px; position: relative; top: -200px;" src="https://demo.gin-vue-admin.com/assets/087AC4D233B64EB0dashboard.70e55b71.png" alt="">
+                </div>
             </el-tabs>
-            <el-card class="box-card">
-                <div slot="header" class="clearfix">
-                    <span>通知公告</span>
-                    <el-button style="float: right; cursor: pointer; padding: 3px 0" type="text">更多</el-button>
-                </div>
-                <div v-for="notice in this.noticeList.slice(0, 4)" class="text item" @click="toNoticeDetail(notice.id)">
-                    <span class="title">{{ notice.title.length > 30 ? notice.title.substring(0, 30) + "..." :
-            notice.title }}</span>
-                    <span class="time">{{ dateFormat(notice.created) }}</span>
-                </div>
-            </el-card>
         </div>
+        <el-card style="width: 98%;margin-bottom: 50px">
+            <div slot="header" class="clearfix">
+                <span>器材</span>
+                <router-link to='/user/equipment'>
+                    <el-button style=" cursor: pointer; padding: 3px 0" type="text">更多</el-button>
+                </router-link>
+            </div>
+            <div id="echarts1"></div>
+        </el-card>
         <el-card style="width: 98%;" class="box-appointment">
             <div slot="header" class="clearfix">
                 <!--        头部-->
@@ -96,17 +104,29 @@
                     <div v-for="vdState in this.placeStateList[this.dateIndex]?.vdstateList" class="bd">
                         <span>{{ vdState.placeName }}</span>
                         <span v-for="idx in vdState.vdstatest.length" :key="idx">
-                            <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 0 && !hasAuth('sys:appointment:forbid')"
-                                @click="orderPlace(idx, vdState.placeName, vdState.placeid, vdState.vdstatedate, vdState.id)"
-                                style="background-color: #34bfa7;border-color: #34bfa7"></i>
+                            <!-- 可预约 -->
                             <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 0 && hasAuth('sys:appointment:forbid')"
                                 @click="sysOrder(idx, vdState.placeName, vdState.placeid, vdState.vdstatedate, vdState.id)"
                                 style="background-color: #34bfa7;border-color: #34bfa7"></i>
+                            <!-- 不可用 -->
                             <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 1" style="background-color:#ccc;"
                                 @click="notOrder()"></i>
+                            <!-- 已预约 -->
                             <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 2"
                                 style="background-color:#bf8f43; border-color: #bf8f43" @click="notOrder()"></i>
                         </span>
+                        <el-dialog title="预约" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+                            <el-form :model="orderForm.radio" ref="orderForm">
+                                <el-form-item label="预约状态" prop="title" label-width="100px">
+                                    <el-radio v-model="orderForm.radio" label="2">预约</el-radio>
+                                    <el-radio v-model="orderForm.radio" label="1">禁止</el-radio>
+                                </el-form-item>
+                            </el-form>
+                            <div slot="footer" class="dialog-footer">
+                                <el-button @click="resetForm()">取 消</el-button>
+                                <el-button type="primary" @click="sysOrderPlace">确 定</el-button>
+                            </div>
+                        </el-dialog>
                     </div>
                 </div>
             </div>
@@ -150,33 +170,12 @@
                 </div>
             </div>
         </el-card>
-        <el-card style="width: 98%;margin-bottom: 50px">
-            <div slot="header" class="clearfix">
-                <span>器材</span>
-                <router-link to='/user/equipment'>
-                    <el-button style=" cursor: pointer; padding: 3px 0" type="text">更多</el-button>
-                </router-link>
-            </div>
-            <div id="echarts1"></div>
-        </el-card>
-        <el-dialog title="预约" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
-            <el-form :model="orderForm.radio" ref="orderForm">
-                <el-form-item label="预约状态" prop="title" label-width="100px">
-                    <el-radio v-model="orderForm.radio" label="2">预约</el-radio>
-                    <el-radio v-model="orderForm.radio" label="1">禁止</el-radio>
-                </el-form-item>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="resetForm()">取 消</el-button>
-                <el-button type="primary" @click="sysOrderPlace">确 定</el-button>
-            </div>
-        </el-dialog>
     </div>
 </template>
 
 <script>
 import noticeComponent from "@/components/noticeComponent";
-import * as echarts from 'echarts'
+import * as echarts from 'echarts';
 export default {
     name: "index",
     components: {
@@ -200,7 +199,14 @@ export default {
             dateIndex: -1,
             orderForm: {},
             dialogVisible: false,
-            userId: 0
+            userId: 0,
+            userInfo: {
+                id: "",
+                username: "",
+                avatar: "",
+            },
+            timer: undefined,
+            nowTime: new Date(),
         }
     },
     created() {
@@ -208,13 +214,17 @@ export default {
         this.userId = sessionStorage.getItem("userId");
         this.getUserCompetitionList();
         this.getNoticeList();
-        this.getPlaceList();
+        this.timer = setInterval(() => {
+            this.nowTime = new Date().toLocaleString();
+        });
+        // this.getPlaceList();
     },
     mounted() {
         setTimeout(() => {
             this.getEquipmentList();
         }, 100);
         this.handleMsg();
+        this.getUserInfo()
     },
     methods: {
         //实时获取echarts的数据
@@ -235,6 +245,7 @@ export default {
                 price: 15,
                 placeStateId: placeStateId
             }
+            console.log(this.orderForm)
         },
         notOrder() {
             this.$message({
@@ -243,18 +254,10 @@ export default {
             });
         },
         sysOrderPlace() {
-            console.log(this.orderForm.radio);
-            if (this.orderForm.radio == null) {
-                this.$message({
-                    type: 'error',
-                    message: '请选择预约状态',
-                });
-                return;
-            }
             this.$axios.post("/appointment/order", this.orderForm).then(res => {
                 this.$message({
                     type: 'success',
-                    message: '预约成功!',
+                    message: this.orderForm.radio == 2 ? '预约成功' : '禁止成功',
                     onClose: () => {
                         this.getPlaceStateList()
                     }
@@ -262,38 +265,14 @@ export default {
                 this.dialogVisible = false;
             })
         },
+        cancelOrder() {
+            this.dialogVisible = true
+        },
         resetForm() {
             this.dialogVisible = false;
         },
         handleClose() {
             this.resetForm()
-        },
-        orderPlace(idx, placeName, placeId, orderDate, placeStateId) {
-            this.$confirm(`是否预约${(idx + 7)}:00~${(idx + 8)}:00的${placeName}？`, '预约场地', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            }).then(() => {
-                this.orderForm = {
-                    placeid: placeId,
-                    orderdate: orderDate,
-                    userid: sessionStorage.getItem("userId"),
-                    orderstart: idx + 7,
-                    orderend: idx + 8,
-                    price: 15,
-                    placeStateId: placeStateId,
-                    radio: 2
-                }
-                this.$axios.post("/appointment/order", this.orderForm).then(res => {
-                    this.$message({
-                        type: 'success',
-                        message: '预约成功!',
-                        onClose: () => {
-                            this.getPlaceStateList()
-                        }
-                    });
-                })
-            })
         },
         ChangeDate(id) {
             this.curDate = this.placeStateList[id].date;
@@ -301,6 +280,7 @@ export default {
         },
         getPlaceStateList() {
             this.$axios.get("/place/vdstate/getPlaceState").then(res => {
+                console.log(res.data.data.placeDateStateList)
                 this.placeStateList = res.data.data.placeDateStateList;
                 for (let i = 0; i < this.placeStateList.length; i++) {
                     this.placeStateList[i].date = this.dateFormat(this.placeStateList[i].date);
@@ -373,10 +353,9 @@ export default {
                 }
             })
         },
-        getPlaceList() {
-            this.$axios.get('/place/list').then(res => {
-                this.placeList = res.data.data.placeList;
-            })
+        getUserInfo() {
+            this.userInfo.username = window.sessionStorage.getItem('username')
+            this.userInfo.avatar = window.sessionStorage.getItem('avatar')
         },
         dateFormat(time) {
             let date = new Date(time);
