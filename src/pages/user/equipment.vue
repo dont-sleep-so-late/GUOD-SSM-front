@@ -2,11 +2,7 @@
   <div>
     <el-form :inline="true">
       <el-form-item>
-        <el-input
-            v-model="searchForm.name"
-            placeholder="器材名称"
-            clearable
-        >
+        <el-input v-model="searchForm.name" placeholder="器材名称" clearable>
         </el-input>
       </el-form-item>
 
@@ -15,36 +11,21 @@
       </el-form-item>
     </el-form>
 
-    <el-table
-        ref="multipleTable"
-        :data="tableData"
-        tooltip-effect="dark"
-        style="width: 100%"
-        border
-        stripe>
+    <el-table ref="multipleTable" v-loading="loading" :data="tableData" tooltip-effect="dark" style="width: 100%" border
+      stripe>
 
-      <el-table-column
-          label="器材名称"
-          prop="name">
+      <el-table-column label="器材名称" prop="name">
       </el-table-column>
 
-      <el-table-column
-          prop="classification"
-          label="器材类别">
+      <el-table-column prop="classification" label="器材类别">
       </el-table-column>
 
-      <el-table-column
-          prop="surplus"
-          label="器材余量">
+      <el-table-column prop="surplus" label="器材余量">
       </el-table-column>
 
-      <el-table-column
-          prop="money"
-          label="器材金额(元/天)">
+      <el-table-column prop="money" label="器材金额(元/天)">
       </el-table-column>
-      <el-table-column
-          prop="icon"
-          label="操作">
+      <el-table-column prop="icon" label="操作">
         <template slot-scope="scope">
           <el-button type="text" @click="editHandle(scope.row.id)">租用</el-button>
         </template>
@@ -52,31 +33,24 @@
 
     </el-table>
 
-    <el-pagination
-        @size-change="handleSizeChange" style="margin-top: 10px;"
-        @current-change="handleCurrentChange"
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[10, 20, 50, 100]"
-        :current-page="current"
-        :page-size="size"
-        :total="total">
+    <el-pagination @size-change="handleSizeChange" style="margin-top: 10px;" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
     </el-pagination>
     <!--新增对话框-->
-    <el-dialog
-        title="租用"
-        :visible.sync="dialogVisible"
-        width="600px"
-        :before-close="handleClose">
+    <el-dialog title="租用" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
 
       <el-form :model="editForm">
         <el-form-item label="租用数量" label-width="100px">
           <el-input-number v-model="editForm.number" :min="1" :max="this.maxNum"></el-input-number>
         </el-form-item>
         <el-form-item label="租用开始时间" label-width="100px">
-          <el-date-picker v-model="editForm.starttime" type="date" placeholder="选择租用开始时间" :picker-options="pickerOptions"></el-date-picker>
+          <el-date-picker v-model="editForm.starttime" type="date" placeholder="选择租用开始时间"
+            :picker-options="pickerOptions"></el-date-picker>
         </el-form-item>
         <el-form-item label="租用结束时间" label-width="100px">
-          <el-date-picker v-model="editForm.endtime" type="date" placeholder="选择租用开始时间" :picker-options="pickerOptions"></el-date-picker>
+          <el-date-picker v-model="editForm.endtime" type="date" placeholder="选择租用开始时间"
+            :picker-options="pickerOptions"></el-date-picker>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -107,7 +81,9 @@ export default {
         }
       },
       tableData: [],
-      maxNum: 1
+      maxNum: 1,
+      loading: true
+
     }
   },
   created() {
@@ -118,9 +94,9 @@ export default {
       let date = new Date(time);
       let year = date.getFullYear();
       let month =
-          date.getMonth() + 1 < 10
-              ? "0" + (date.getMonth() + 1)
-              : date.getMonth() + 1;
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
       let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
       return (year + "-" + month + "-" + day);
     },
@@ -157,10 +133,11 @@ export default {
         this.size = res.data.data.pageData.size
         this.current = res.data.data.pageData.current
         this.total = res.data.data.pageData.total
+        this.loading = false;
       })
     },
     submitForm() {
-      if (this.editForm.starttime.getTime() > this.editForm.endtime.getTime()){
+      if (this.editForm.starttime.getTime() > this.editForm.endtime.getTime()) {
         this.$message({
           showClose: true,
           message: '租用时间有误',
@@ -168,12 +145,12 @@ export default {
         });
         return;
       }
-      this.$axios.post('/borrow/save',this.editForm).then(res => {
+      this.$axios.post('/borrow/save', this.editForm).then(res => {
         this.$message({
           showClose: true,
           message: '恭喜你，操作成功,等待器材管理员审核',
           type: 'success',
-          onClose:() => {
+          onClose: () => {
             this.getEquipmentList()
           }
         });
@@ -192,6 +169,4 @@ export default {
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

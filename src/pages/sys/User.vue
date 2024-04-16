@@ -22,7 +22,7 @@
     </el-form>
 
     <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
-      @selection-change="handleSelectionChange">
+      @selection-change="handleSelectionChange" v-loading="loading">
 
       <el-table-column type="selection" width="55">
       </el-table-column>
@@ -170,7 +170,9 @@ export default {
       roleForm: {},
       roleTreeData: [],
       treeCheckedKeys: [],
-      checkStrictly: true
+      checkStrictly: true,
+      loading: true
+
     }
   },
   created() {
@@ -238,6 +240,8 @@ export default {
         this.size = res.data.data.pageData.size
         this.current = res.data.data.pageData.current
         this.total = res.data.data.pageData.total
+        this.loading = false;
+
       })
     },
 

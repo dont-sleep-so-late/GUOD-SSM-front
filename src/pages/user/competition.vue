@@ -38,7 +38,7 @@
         <el-button v-if="new Date() < new Date(competition.starttime) && competition.applyStatus === 0"
           @click="toDetail(competition.id)">取消报名</el-button>
         <p v-if="new Date() < new Date(competition.starttime)">距离报名截止还有 {{ parseInt((new
-      Date(competition.starttime).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) }} 天</p>
+          Date(competition.starttime).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) }} 天</p>
         <p v-else>报名结束</p>
         <p>
           <span style="cursor: pointer" @click="toDetail(competition.id)">竞赛详情 ></span>
@@ -54,7 +54,8 @@ export default {
   data() {
     return {
       competitionList: [],
-      userId: 0
+      userId: 0,
+      loading: false
     }
   },
   created() {
@@ -71,6 +72,7 @@ export default {
     getUserCompetitionList() {
       this.$axios.get("/competition/getCompetitionList/" + this.userId).then(res => {
         this.competitionList = res.data.data.competitionList;
+        this.loading = false;
       })
     },
     dateFormat(time) {
@@ -96,9 +98,11 @@ export default {
   display: flex;
   align-items: center;
 }
-.competitionInfo{
+
+.competitionInfo {
   width: 60%;
 }
+
 h3 {
   font-size: 25px;
   margin: 10px 0;
