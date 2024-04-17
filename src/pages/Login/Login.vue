@@ -97,6 +97,7 @@ export default {
               this.$router.replace('/index').catch((err) => { this.$router.replace('/index').catch((err) => { }) })
             }, 1000);
           }).catch(res => {
+
             this.getCaptcha();
           })
         } else {

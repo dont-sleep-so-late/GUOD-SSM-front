@@ -39,6 +39,7 @@ request.interceptors.response.use(
     if (res.code === 200) {
       return response;
     } else if (res.code == 400) {
+      ElMessage.Message.error(res.message ? res.message : "系统异常");
       return res;
     } else {
       ElMessage.Message.error(res.message ? res.message : "系统异常");

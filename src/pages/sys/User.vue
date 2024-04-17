@@ -282,12 +282,12 @@ export default {
           ids.push(row.id)
         })
       }
-
       this.$axios.post("/sys/user/delete", ids).then(res => {
+        let mes = res.success ? 'success' : 'error'
         this.$message({
           showClose: true,
-          message: '恭喜你，操作成功',
-          type: 'success',
+          message: res.message,
+          type: mes,
           onClose: () => {
             this.getUserList()
           }
