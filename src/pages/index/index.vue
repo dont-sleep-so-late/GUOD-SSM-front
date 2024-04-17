@@ -3,7 +3,7 @@
         <noticeComponent v-if="notice" :text="notice" @click="openTip" />
         <div class="left-notice">
             <el-tabs style="float: left; margin-bottom: 20px; width: 98%; height: 370px;" type="border-card">
-                <div style="float: left; width: 50%; height: 100%; padding: 20px;">
+                <div style="float: left; width: 40%; height: 100%; padding: 20px;">
                     <el-avatar :size="155" shape="circle" :src="userInfo.avatar"
                         style="float: left; margin-right: 30px;"></el-avatar>
                     <div style="margin-top: 20px;">

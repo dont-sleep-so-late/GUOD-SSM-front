@@ -298,12 +298,12 @@ export default {
           ids.push(row.id)
         })
       }
-      console.log(ids)
       this.$axios.post("/sys/competition/delete", ids).then(res => {
+        let mes = res.success ? 'success' : 'error'
         this.$message({
           showClose: true,
-          message: '恭喜你，操作成功',
-          type: 'success',
+          message: res.message,
+          type: mes,
           onClose: () => {
             this.getCompetitionList()
           }

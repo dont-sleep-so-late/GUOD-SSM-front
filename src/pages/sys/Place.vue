@@ -2,11 +2,7 @@
   <div>
     <el-form :inline="true">
       <el-form-item>
-        <el-input
-            v-model="searchForm.place"
-            placeholder="场地名称"
-            clearable
-        >
+        <el-input v-model="searchForm.place" placeholder="场地名称" clearable>
         </el-input>
       </el-form-item>
 
@@ -19,57 +15,35 @@
       </el-form-item>
       <el-form-item>
         <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
-          <el-button type="danger" slot="reference" :disabled="delBtlStatus" v-if="hasAuth('sys:place:delete')">批量删除</el-button>
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:place:delete')">批量删除</el-button>
         </el-popconfirm>
       </el-form-item>
     </el-form>
 
-    <el-table
-        ref="multipleTable"
-        :data="tableData"
-        tooltip-effect="dark"
-        style="width: 100%"
-        border
-        stripe
-        @selection-change="handleSelectionChange">
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange">
 
-      <el-table-column
-          type="selection"
-          width="55">
+      <el-table-column type="selection" width="55">
       </el-table-column>
 
-      <el-table-column
-          label="场地名称"
-          width="120"
-          prop="place">
+      <el-table-column label="场地名称" width="120" prop="place">
       </el-table-column>
 
-      <el-table-column
-          label="场地图片"
-          width="120"
-          prop="url">
+      <el-table-column label="场地图片" width="120" prop="url">
         <template slot-scope="scope">
           <el-image v-if="scope.row.url" :src="scope.row.url"></el-image>
         </template>
       </el-table-column>
 
-      <el-table-column
-          prop="people"
-          label="联系人"
-          width="100">
+      <el-table-column prop="people" label="联系人" width="100">
       </el-table-column>
 
-      <el-table-column
-          prop="phone"
-          label="联系电话">
+      <el-table-column prop="phone" label="联系电话">
       </el-table-column>
-      <el-table-column
-          prop="address"
-          label="场地地址">
+      <el-table-column prop="address" label="场地地址">
       </el-table-column>
-      <el-table-column
-          prop="status"
-          label="场地信息状态">
+      <el-table-column prop="status" label="场地信息状态">
         <template slot-scope="scope">
           <el-tag size="small" v-if="scope.row.status === 0" type="success">发布</el-tag>
           <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">未发布</el-tag>
@@ -77,16 +51,9 @@
         </template>
 
       </el-table-column>
-      <el-table-column
-          prop="created"
-          width="200"
-          label="创建时间"
-      >
+      <el-table-column prop="created" width="200" label="创建时间">
       </el-table-column>
-      <el-table-column
-          prop="icon"
-          width="260px"
-          label="操作">
+      <el-table-column prop="icon" width="260px" label="操作">
 
         <template slot-scope="scope">
           <el-button type="text" v-if="hasAuth('sys:place:update')" @click="editHandle(scope.row.id)">编辑</el-button>
@@ -102,21 +69,12 @@
 
     </el-table>
 
-    <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[10, 20, 50, 100]"
-        :current-page="current"
-        :page-size="size"
-        :total="total">
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
     </el-pagination>
     <!--新增对话框-->
-    <el-dialog
-        title="提示"
-        :visible.sync="dialogVisible"
-        width="600px"
-        :before-close="handleClose">
+    <el-dialog title="提示" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
 
       <el-form :model="editForm" :rules="editFormRules" ref="editForm">
         <el-form-item label="场地名称" prop="place" label-width="100px">
@@ -133,11 +91,12 @@
           <el-input v-model="editForm.address" autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item label="场地描述"  prop="description" label-width="100px">
-          <el-input type="textarea" :rows="10" placeholder="请输入场地描述" v-model="editForm.description" autocomplete="off"></el-input>
+        <el-form-item label="场地描述" prop="description" label-width="100px">
+          <el-input type="textarea" :rows="10" placeholder="请输入场地描述" v-model="editForm.description"
+            autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item label="状态"  prop="status" label-width="100px">
+        <el-form-item label="状态" prop="status" label-width="100px">
           <el-radio-group v-model="editForm.status">
             <el-radio :label="0">发布</el-radio>
             <el-radio :label="1">未发布</el-radio>
@@ -146,13 +105,8 @@
         </el-form-item>
 
         <el-form-item label="场地图片" label-width="100px">
-          <el-upload
-              class="avatar-uploader"
-              :show-file-list="false"
-              action="action"
-              :http-request="upload"
-              :on-success="handleAvatarSuccess"
-              :before-upload="beforeAvatarUpload">
+          <el-upload class="avatar-uploader" :show-file-list="false" action="action" :http-request="upload"
+            :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
             <el-image v-if="this.imgUrl" :src="this.imgUrl" class="avatar"></el-image>
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
@@ -182,22 +136,22 @@ export default {
       tableData: [],
       editFormRules: {
         place: [
-          {required: true, message: '请输入场地名称', trigger: 'blur'}
+          { required: true, message: '请输入场地名称', trigger: 'blur' }
         ],
         people: [
-          {required: true, message: '请输入联系人', trigger: 'blur'}
+          { required: true, message: '请输入联系人', trigger: 'blur' }
         ],
         phone: [
-          {required: true, message: '请输入联系电话', trigger: 'blur'}
+          { required: true, message: '请输入联系电话', trigger: 'blur' }
         ],
         address: [
-          {required: true, message: '请输入场地地址', trigger: 'blur'}
+          { required: true, message: '请输入场地地址', trigger: 'blur' }
         ],
         description: [
-          {required: true, message: '请输入场地描述', trigger: 'blur'}
+          { required: true, message: '请输入场地描述', trigger: 'blur' }
         ],
         status: [
-          {required: true, message: '请选择状态', trigger: 'blur'}
+          { required: true, message: '请选择状态', trigger: 'blur' }
         ]
       },
       multipleSelection: [],
@@ -207,7 +161,7 @@ export default {
         label: 'name'
       },
       roleForm: {},
-      roleTreeData:  [],
+      roleTreeData: [],
       treeCheckedKeys: [],
       checkStrictly: true,
       imgUrl: ''
@@ -226,11 +180,11 @@ export default {
         this.$refs.multipleTable.clearSelection();
       }
     },
-    upload (param) {
+    upload(param) {
       console.log(param);
       const formData = new FormData()
       formData.append('file', param.file)
-      this.$axios.post('/upload/img',formData,{headers: {'Content-Type': 'multipart/form-data'}}).then(res => {
+      this.$axios.post('/upload/img', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
         this.imgUrl = res.data.data.fileUrl;
         console.log(this.editForm.url);
       })
@@ -250,9 +204,9 @@ export default {
       let date = new Date(time);
       let year = date.getFullYear();
       let month =
-          date.getMonth() + 1 < 10
-              ? "0" + (date.getMonth() + 1)
-              : date.getMonth() + 1;
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
       let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
       return (year + "-" + month + "-" + day);
     },
@@ -296,7 +250,7 @@ export default {
         this.tableData = res.data.data.pageData.records
         for (let i = 0; i < this.tableData.length; i++) {
           this.tableData[i].created = this.dateFormat(this.tableData[i].created);
-          if (this.tableData[i].updated){
+          if (this.tableData[i].updated) {
             this.tableData[i].updated = this.dateFormat(this.tableData[i].updated);
           }
         }
@@ -311,19 +265,19 @@ export default {
         if (valid) {
           console.log(this.editForm);
           this.editForm.url = this.imgUrl;
-          this.$axios.post('/sys/place/' + (this.editForm.id?'update' : 'save'), this.editForm)
-              .then(res => {
-                this.$message({
-                  showClose: true,
-                  message: '恭喜你，操作成功',
-                  type: 'success',
-                  onClose:() => {
-                    this.getPlaceList()
-                  }
-                });
-                this.dialogVisible = false
-                this.imgUrl = '';
-              })
+          this.$axios.post('/sys/place/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getPlaceList()
+                }
+              });
+              this.dialogVisible = false
+              this.imgUrl = '';
+            })
         } else {
           console.log('error submit!!');
           return false;
@@ -348,11 +302,12 @@ export default {
       }
       console.log(ids)
       this.$axios.post("/sys/place/delete", ids).then(res => {
+        let mes = res.success ? 'success' : 'error'
         this.$message({
           showClose: true,
-          message: '恭喜你，操作成功',
-          type: 'success',
-          onClose:() => {
+          message: res.message,
+          type: mes,
+          onClose: () => {
             this.getPlaceList()
           }
         });
@@ -370,9 +325,11 @@ export default {
   position: relative;
   overflow: hidden;
 }
+
 .avatar-uploader .el-upload:hover {
   border-color: #409EFF;
 }
+
 .avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
@@ -382,6 +339,7 @@ export default {
   text-align: center;
   border: 1px dashed #d9d9d9;
 }
+
 .avatar {
   width: 178px;
   height: 178px;
