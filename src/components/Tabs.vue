@@ -58,4 +58,10 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+@media (max-width: 800px) {
+  .el-tabs {
+    display: none;
+  }
+}
+</style>

@@ -82,4 +82,6 @@ export default {
 .el-header {
     padding: 0 0;
 }
+
+
 </style>

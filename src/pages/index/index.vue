@@ -613,4 +613,10 @@ export default {
     float: left;
     margin-left: 40px;
 }
+
+@media (max-width: 1200px) {
+    .left-notice img {
+        display: none;
+    }
+}
 </style>
