@@ -7,11 +7,11 @@
                     <i v-if="!isCollapse" class="el-icon-s-fold"></i>
                 </div>
             </el-col>
-            <el-col :span="8" style="display: flex;align-items: center;justify-content: center;">
+            <el-col :span="6" style="display: flex;align-items: center;">
                 <el-avatar shape="circle" :src="logo"></el-avatar>
                 <p class="system-name">广东海洋大学体育管理系统</p>
             </el-col>
-            <el-col :span="10" style="display: flex;justify-content: end;align-items: center;margin-right: 20px;">
+            <el-col :span="8" style="display: flex;justify-content: end;align-items: center;margin-right: 20px;">
                 <router-link to='/user/order'>
                     <span class="order">租用订单</span>
                 </router-link>
@@ -242,7 +242,7 @@ export default {
     font-weight: 600;
     text-align: center;
     line-height: 56px;
-    width: 350px;
+    width: 260px;
 }
 
 .toggle-button {

@@ -25,6 +25,12 @@ export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'layout',
     components: { Aside, Header, Tabs },
+    data() {
+        return {
+            socket: null,
+            userId: localstorage.getItem("userId")
+        }
+    },
     created() {
         if (this.userId != null) {
             this.initWebSocket();
@@ -83,5 +89,7 @@ export default {
     padding: 0 0;
 }
 
-
+.el-main {
+    height: 20vh;
+}
 </style>
