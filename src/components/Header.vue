@@ -7,7 +7,7 @@
                     <i v-if="!isCollapse" class="el-icon-s-fold"></i>
                 </div>
             </el-col>
-            <el-col :span="6" style="display: flex;align-items: center;">
+            <el-col :span="10" style="display: flex;align-items: center;">
                 <el-avatar shape="circle" :src="logo"></el-avatar>
                 <p class="system-name">广东海洋大学体育管理系统</p>
             </el-col>
@@ -17,7 +17,7 @@
                 </router-link>
                 <el-popover placement="left-end" :width="300" trigger="click">
                     <div class="notice_item"
-                        v-for="notice in (this.borrowList.length > 0 ? this.borrowList : this.compensateList)"
+                        v-for="notice in (this.compensateList.length > 0 ? this.compensateList : this.borrowList)"
                         :key="notice.id">
                         <div v-if="notice.equipmentid">
                             <span class="info">
@@ -89,6 +89,7 @@ export default {
     },
     mounted() {
         this.handleMsg();
+        this.open()
     },
     computed: {
         isCollapse() {
@@ -96,12 +97,20 @@ export default {
         },
     },
     methods: {
+        open() {
+            setTimeout(() => {
+                console.log(this.compensateList);
+                if (this.compensateList.length > 0)
+                    this.$alert('请立即支付！', '您有器材赔偿未支付！', {
+                        confirmButtonText: '了解',
+                    });
+            }, 1000);
+        },
         getUserInfo() {
             this.userInfo.username = window.sessionStorage.getItem('username')
             this.userInfo.id = window.sessionStorage.getItem('userId')
             this.getCompensateNum();
         },
-        //实时获取echarts的数据
         handleMsg() {
             this.$globalWebSocket.ws.onmessage = this.getMessage
         },
@@ -157,7 +166,7 @@ export default {
         },
         getBorrowNum() {
             this.$axios.get("/sys/borrow/getBorrowNum").then(res => {
-                this.num = res.data.data.borrowNum;
+                this.num += res.data.data.borrowNum;
                 this.borrowList = res.data.data.borrowNoticeList;
                 for (let i = 0; i < this.borrowList.length; i++) {
                     this.borrowList[i].created = this.dateFormat(this.borrowList[i].created);
@@ -166,7 +175,7 @@ export default {
         },
         getCompensateNum() {
             this.$axios.get("/compensate/getCompensateNum/" + this.userInfo.id).then(res => {
-                this.num += res.data.data.compensateNum;
+                this.num = res.data.data.compensateNum;
                 this.compensateList = res.data.data.compensateList;
                 for (let i = 0; i < this.compensateList.length; i++) {
                     this.compensateList[i].created = this.dateFormat(this.compensateList[i].created);
@@ -207,6 +216,7 @@ export default {
 
 .order {
     height: 60px;
+    text-wrap: nowrap;
     /*background-color: pink;*/
     line-height: 60px;
     cursor: pointer;
@@ -280,7 +290,11 @@ export default {
     border-bottom: 1px solid #409EFF;
 }
 
-@media (max-width: 1024px) {
+.el-dropdown-link {
+    text-wrap: nowrap;
+}
+
+@media (max-width: 1200px) {
     .system-name {
         display: none;
     }

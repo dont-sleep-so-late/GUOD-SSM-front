@@ -146,10 +146,11 @@ export default {
         return;
       }
       this.$axios.post('/borrow/save', this.editForm).then(res => {
+        let mes = res.data.success ? 'success' : 'error'
         this.$message({
           showClose: true,
-          message: '恭喜你，操作成功,等待器材管理员审核',
-          type: 'success',
+          message: res.data.message,
+          type: mes,
           onClose: () => {
             this.getEquipmentList()
           }

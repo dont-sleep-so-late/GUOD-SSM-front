@@ -236,6 +236,10 @@ export default {
             this.$globalWebSocket.ws.onmessage = this.getMessage
         },
         getMessage(e) {
+            this.$notify.info({
+                title: '通知',
+                message: e.data
+            });
             this.getEquipmentList();
         },
         sysOrder(idx, placeName, placeId, orderDate, placeStateId) {

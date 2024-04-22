@@ -40,7 +40,7 @@ request.interceptors.response.use(
       return response;
     } else if (res.code == 400) {
       ElMessage.Message.error(res.message ? res.message : "系统异常");
-      return res;
+      return response;
     } else {
       ElMessage.Message.error(res.message ? res.message : "系统异常");
       return Promise.reject(response);
