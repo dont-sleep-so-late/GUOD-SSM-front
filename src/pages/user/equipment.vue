@@ -146,18 +146,19 @@ export default {
         return;
       }
       this.$axios.post('/borrow/save', this.editForm).then(res => {
-        let mes = res.data.success ? 'success' : 'error'
-        this.$message({
-          showClose: true,
-          message: res.data.message,
-          type: mes,
-          onClose: () => {
-            this.getEquipmentList()
-          }
-        });
-        this.editForm = {}
-        this.editForm.number = 1
-        this.dialogVisible = false
+        if (res.data.success) {
+          this.$message({
+            showClose: true,
+            message: res.data.message,
+            type: 'success',
+            onClose: () => {
+              this.getEquipmentList()
+            }
+          });
+          this.editForm = {}
+          this.editForm.number = 1
+          this.dialogVisible = false
+        }
       })
     },
     editHandle(id) {

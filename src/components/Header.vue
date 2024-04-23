@@ -7,15 +7,15 @@
                     <i v-if="!isCollapse" class="el-icon-s-fold"></i>
                 </div>
             </el-col>
-            <el-col :span="10" style="display: flex;align-items: center;">
+            <el-col :span="6" style="display: flex;align-items: center;">
                 <el-avatar shape="circle" :src="logo"></el-avatar>
                 <p class="system-name">广东海洋大学体育管理系统</p>
             </el-col>
-            <el-col :span="8" style="display: flex;justify-content: end;align-items: center;margin-right: 20px;">
+            <el-col :span="6" style="display: flex;justify-content: end;align-items: center;margin-right: 20px;">
                 <router-link to='/user/order'>
                     <span class="order">租用订单</span>
                 </router-link>
-                <el-popover placement="left-end" :width="300" trigger="click">
+                <el-popover popper-class="popoverStyle" placement="left-end" :width="300" trigger="click">
                     <div class="notice_item"
                         v-for="notice in (this.compensateList.length > 0 ? this.compensateList : this.borrowList)"
                         :key="notice.id">
@@ -103,7 +103,12 @@ export default {
                 if (this.compensateList.length > 0)
                     this.$alert('请立即支付！', '您有器材赔偿未支付！', {
                         confirmButtonText: '了解',
-                    });
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '请到消息处支付'
+                        });
+                    });;
             }, 1000);
         },
         getUserInfo() {
@@ -152,7 +157,12 @@ export default {
                         }
                     });
                 })
-            })
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消支付'
+                });
+            });
         },
         dateFormat(time) {
             let date = new Date(time);
@@ -166,7 +176,7 @@ export default {
         },
         getBorrowNum() {
             this.$axios.get("/sys/borrow/getBorrowNum").then(res => {
-                this.num += res.data.data.borrowNum;
+                this.num = res.data.data.borrowNum;
                 this.borrowList = res.data.data.borrowNoticeList;
                 for (let i = 0; i < this.borrowList.length; i++) {
                     this.borrowList[i].created = this.dateFormat(this.borrowList[i].created);
@@ -175,7 +185,7 @@ export default {
         },
         getCompensateNum() {
             this.$axios.get("/compensate/getCompensateNum/" + this.userInfo.id).then(res => {
-                this.num = res.data.data.compensateNum;
+                this.num += res.data.data.compensateNum;
                 this.compensateList = res.data.data.compensateList;
                 for (let i = 0; i < this.compensateList.length; i++) {
                     this.compensateList[i].created = this.dateFormat(this.compensateList[i].created);
@@ -230,14 +240,8 @@ export default {
     color: #409EFF;
 }
 
-.popover {
-    max-height: 100px;
-    overflow: hidden;
-}
-
 .notice_item {
     border-bottom: 1px solid #868DAA;
-    overflow: hidden;
 }
 
 .item {
@@ -245,6 +249,7 @@ export default {
     background: none;
     color: #fff;
 }
+
 
 .system-name {
     color: #fff;
@@ -298,5 +303,19 @@ export default {
     .system-name {
         display: none;
     }
+}
+
+@media (max-width:700px) {
+    .el-avatar {
+        display: none;
+    }
+}
+</style>
+
+<style>
+.popoverStyle {
+    height: 500px;
+    overflow: auto;
+    
 }
 </style>

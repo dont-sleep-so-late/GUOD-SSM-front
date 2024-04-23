@@ -98,12 +98,17 @@ export default {
 
 .competition {
   width: 25%;
-  border: 5px solid #fafafa;
   padding: 20px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   flex-direction: column;
+}
+
+@media (min-width: 2000px) {
+  .competition {
+    width: 20%;
+  }
 }
 
 @media (max-width: 1600px) {
