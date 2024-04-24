@@ -283,15 +283,17 @@ export default {
         })
       }
       this.$axios.post("/sys/user/delete", ids).then(res => {
-        let mes = res.success ? 'success' : 'error'
-        this.$message({
-          showClose: true,
-          message: res.message,
-          type: mes,
-          onClose: () => {
-            this.getUserList()
-          }
-        });
+        if (res.data.success) {
+          this.$message({
+            showClose: true,
+            message: res.data.message,
+            type: 'success',
+            onClose: () => {
+              this.getUserList()
+            }
+          });
+        }
+
       })
     },
 

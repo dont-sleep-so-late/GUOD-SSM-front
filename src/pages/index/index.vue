@@ -263,13 +263,18 @@ export default {
         },
         sysOrderPlace() {
             this.$axios.post("/appointment/order", this.orderForm).then(res => {
-                this.$message({
-                    type: 'success',
-                    message: this.orderForm.radio == 2 ? '预约成功' : '禁止成功',
-                    onClose: () => {
-                        this.getPlaceStateList()
-                    }
-                });
+                console.log(res.data);
+                if (res.data.success) {
+                    this.$message({
+                        showClose: true,
+                        message: '预约成功',
+                        type: 'success',
+                        onClose: () => {
+                            this.getEquipmentList()
+                        }
+                    });
+                }
+
                 this.dialogVisible = false;
             })
         },

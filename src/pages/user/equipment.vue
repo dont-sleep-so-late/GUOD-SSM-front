@@ -159,6 +159,13 @@ export default {
           this.editForm.number = 1
           this.dialogVisible = false
         }
+        else {
+          this.$message({
+            showClose: true,
+            message: res.data.message,
+            type: 'erorr',
+          });
+        }
       })
     },
     editHandle(id) {

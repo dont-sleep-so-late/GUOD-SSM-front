@@ -199,9 +199,10 @@ export default {
                 cancelButtonText: "取消",
                 type: "warning",
             }).then(() => {
+                window.sessionStorage.clear();
+                window.localStorage.clear();
                 this.$axios.post("/logout").then(res => {
                     // 清除缓存
-                    window.sessionStorage.clear();
                     this.$store.commit("resetState");
                     this.$message({
                         message: '注销成功',
@@ -316,6 +317,6 @@ export default {
 .popoverStyle {
     height: 500px;
     overflow: auto;
-    
+
 }
 </style>

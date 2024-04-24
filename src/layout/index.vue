@@ -28,7 +28,7 @@ export default {
     data() {
         return {
             socket: null,
-            userId: localStorage.getItem("userId")
+            userId: sessionStorage.getItem("userId")
         }
     },
     created() {
