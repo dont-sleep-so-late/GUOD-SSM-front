@@ -74,25 +74,47 @@
       :page-size="size" :total="total">
     </el-pagination>
     <!--新增对话框-->
-    <el-dialog title="提示" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+    <el-dialog :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
 
       <el-form :model="editForm" :rules="editFormRules" ref="editForm">
         <el-form-item label="赛事名称" prop="name" label-width="120px">
-          <el-input v-model="editForm.name" autocomplete="off"></el-input>
+          <el-input v-model="editForm.name" autocomplete="off" style="width: 220px;"></el-input>
         </el-form-item>
 
         <el-form-item label="赛事地点" prop="place" label-width="120px">
-          <el-input v-model="editForm.place" autocomplete="off"></el-input>
+          <el-select v-model="editForm.place" placeholder="请选择赛事地点" style="width: 220px;">
+            <el-option
+              v-for="item in placeList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
 
-        <el-form-item label="赛事开始时间" label-width="120px">
-          <el-date-picker v-model="editForm.starttime" type="datetime" placeholder="选择赛事开始时间"
-            :picker-options="pickerOptions"></el-date-picker>
+        <el-form-item label="赛事起止时间" label-width="120px">
+          <el-date-picker v-model="editForm.gameStartTime" type="datetime" placeholder="选择赛事开始时间"
+            :picker-options="pickerOptions" style="width: 200px;margin-right: 5px;"></el-date-picker>
+            <el-date-picker v-model="editForm.gameEndTime" type="datetime" placeholder="选择赛事结束时间"
+            :picker-options="pickerOptions" style="width: 200px;"></el-date-picker>
         </el-form-item>
 
-        <el-form-item label="赛事结束时间" label-width="120px">
-          <el-date-picker v-model="editForm.endtime" type="datetime" placeholder="选择赛事开始时间"
-            :picker-options="pickerOptions"></el-date-picker>
+        <el-form-item label="场地租用时间" label-width="120px">
+          <el-date-picker v-model="editForm.placeStartTime" type="datetime" placeholder="选择租用开始时间"
+            :picker-options="pickerOptions" style="width: 200px;margin-right: 5px;"></el-date-picker>
+            <el-date-picker v-model="editForm.placeEndTime" type="datetime" placeholder="选择租用结束时间"
+            :picker-options="pickerOptions" style="width: 200px;"></el-date-picker>
+        </el-form-item>
+
+        <el-form-item label="租用器材" label-width="120px">
+          <el-select v-model="editForm.equipment" multiple placeholder="请选择要租用的器材" style="width: 220px;">
+            <el-option
+              v-for="item in equipmentList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
 
         <el-form-item label="赛事介绍" prop="description" label-width="120px">
@@ -158,11 +180,25 @@ export default {
         }
       },
       multipleSelection: [],
-      imgUrl: ''
+      imgUrl: '',
+      placeList:[],
+      equipmentList:[],
     }
   },
   created() {
     this.getCompetitionList();
+    this.getPlaceList();
+    this.getEquipmentList();
+  },
+  computed: {
+    uploadUrl() {
+      return this.$axios.defaults.baseURL + '/upload/img'
+    }
+  },
+  watch: {
+    multipleSelection: function (val) {
+      this.delBtlStatus = val.length == 0
+    }
   },
   methods: {
     toggleSelection(rows) {
@@ -203,8 +239,6 @@ export default {
       return (year + "-" + month + "-" + day);
     },
     handleSelectionChange(val) {
-      console.log("勾选")
-      console.log(val)
       this.multipleSelection = val;
       this.delBtlStatus = val.length == 0
     },
@@ -284,6 +318,7 @@ export default {
     },
     editHandle(id) {
       this.$axios.get('/sys/competition/info/' + id).then(res => {
+        console.log(res.data.data.info)
         this.editForm = res.data.data.info
         this.dialogVisible = true
         this.imgUrl = this.editForm.url
@@ -309,7 +344,40 @@ export default {
           }
         });
       })
-    }
+    },
+    getPlaceList() {
+      this.$axios.get("/sys/place/list", {
+        params: {
+          current: 1,
+          size: 10
+        }
+      }).then(res => {
+        const r = res.data.data.pageData.records
+        for (let i = 0; i < r.length; i++) {
+          this.placeList[i] = {
+            label: r[i].place,
+            value: r[i].id
+          }
+        }
+      })
+    },
+    getEquipmentList() {
+      this.$axios.get("/equipment/list", {
+        params: {
+          current: 1,
+          size: 10
+        }
+      }).then(res => {
+        console.log(res.data.data.pageData.records)
+        const r = res.data.data.pageData.records
+        for (let i = 0; i < r.length; i++) {
+          this.equipmentList[i] = {
+            label: r[i].name,
+            value: r[i].id
+          }
+        }
+      })
+    },
   }
 }
 </script>
