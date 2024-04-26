@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="competitionContainer">
     <div v-for="competition in this.competitionList" class="competition">
       <div>
         <el-image :src="competition.url"></el-image>
@@ -33,16 +33,17 @@
         </p>
       </div>
       <div class="info">
+        <p v-if="new Date() < new Date(competition.starttime)">距离报名截止还有 {{ parseInt((new
+          Date(competition.starttime).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) }} 天</p>
+        <p v-else>报名结束</p>
         <el-button v-if="new Date() < new Date(competition.starttime) && competition.applyStatus === 1"
           @click="toDetail(competition.id)">点击报名</el-button>
         <el-button v-if="new Date() < new Date(competition.starttime) && competition.applyStatus === 0"
           @click="toDetail(competition.id)">取消报名</el-button>
-        <p v-if="new Date() < new Date(competition.starttime)">距离报名截止还有 {{ parseInt((new
-      Date(competition.starttime).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) }} 天</p>
-        <p v-else>报名结束</p>
         <p>
           <span style="cursor: pointer" @click="toDetail(competition.id)">竞赛详情 ></span>
         </p>
+
       </div>
     </div>
   </div>
@@ -54,7 +55,8 @@ export default {
   data() {
     return {
       competitionList: [],
-      userId: 0
+      userId: 0,
+      loading: false
     }
   },
   created() {
@@ -71,6 +73,7 @@ export default {
     getUserCompetitionList() {
       this.$axios.get("/competition/getCompetitionList/" + this.userId).then(res => {
         this.competitionList = res.data.data.competitionList;
+        this.loading = false;
       })
     },
     dateFormat(time) {
@@ -88,22 +91,57 @@ export default {
 </script>
 
 <style scoped>
+.competitionContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .competition {
-  width: 100%;
-  border: 5px solid #fafafa;
+  width: 25%;
   padding: 20px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
+  flex-direction: column;
 }
-.competitionInfo{
-  width: 60%;
+
+@media (min-width: 2000px) {
+  .competition {
+    width: 20%;
+  }
 }
+
+@media (max-width: 1600px) {
+  .competition {
+    width: 33.3%;
+  }
+}
+
+@media (max-width: 1250px) {
+  .competition {
+    width: 50%;
+  }
+}
+
+@media (max-width: 900px) {
+  .competition {
+    width: 100%;
+  }
+}
+
+.competitionInfo {
+  width: 90%;
+}
+
 h3 {
-  font-size: 25px;
+  font-size: 18px;
   margin: 10px 0;
   letter-spacing: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 
 p {
   color: #aaa;
@@ -113,14 +151,15 @@ p {
   width: 100px;
   overflow: hidden;
   font-weight: 600;
+  margin-right: 10px;
 }
 
 .info {
-  width: 20%;
+  width: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   height: 100%;
+  justify-content: space-between;
 }
 
 .info .el-button {
@@ -137,11 +176,7 @@ p {
 
 
 .el-image {
-  height: 150px;
-  width: 300px;
+  width: 100%;
   border-radius: 15px;
-  margin-right: 50px;
-  margin-left: 50px;
-  vertical-align: bottom;
 }
 </style>

@@ -3,38 +3,41 @@
         <noticeComponent v-if="notice" :text="notice" @click="openTip" />
         <div class="left-notice">
             <el-tabs style="float: left; margin-bottom: 20px; width: 98%; height: 370px;" type="border-card">
-                <div style="float: left; width: 50%; height: 100%; padding: 20px;">
-                    <el-avatar :size="155" shape="circle" :src="userInfo.avatar" style="float: left; margin-right: 30px;"></el-avatar>
+                <div style="float: left; width: 40%; height: 100%; padding: 20px;">
+                    <el-avatar :size="155" shape="circle" :src="userInfo.avatar"
+                        style="float: left; margin-right: 30px;"></el-avatar>
                     <div style="margin-top: 20px;">
-                        <span style="display: block; font-size: 25px;">您好，{{ userInfo.username }}，请开始一天的工作吧</span>
-                        <span style="display: block; font-size: 25px; margin-top: 10px;">当前时间:{{ nowTime }}</span>
+                        <span style="display: block; font-size: 1.5rem;">您好，{{ userInfo.username }}，请开始一天的工作吧</span>
+                        <span style="display: block; font-size: 1rem; margin-top: 10px;">当前时间:{{ nowTime }}</span>
                     </div>
                     <div style="margin-top: 70px; width: 600px;">
                         <div slot="header" class="clearfix">
                             <h3>通知公告</h3>
                         </div>
                         <br>
-                        <div v-for="notice in this.noticeList.slice(0, 3)" class="text item" @click="toNoticeDetail(notice.id)">
-                            <span class="title">{{ notice.title.length > 30 ? notice.title.substring(0, 30) + "..." : notice.title }}</span>
+                        <div v-for="notice in this.noticeList.slice(0, 3)" class="text item"
+                            @click="toNoticeDetail(notice.id)">
+                            <span class="title">{{ notice.title.length > 30 ? notice.title.substring(0, 30) + "..." :
+                                notice.title }}</span>
                             <span class="time">{{ dateFormat(notice.created) }}</span>
                         </div>
                     </div>
                 </div>
-                <div style="float: right;height: 100%;overflow: hidden;">
-                    <img style="width: 700px; height: 700px; position: relative; top: -200px;" src="https://demo.gin-vue-admin.com/assets/087AC4D233B64EB0dashboard.70e55b71.png" alt="">
+                <div style="height: 100%;width:50%;overflow: hidden;float: right;">
+                    <img style="width: 100%; height: 100%;position: relative;top:-120px;" :src="bgImg" alt="">
                 </div>
             </el-tabs>
         </div>
         <el-card style="width: 98%;margin-bottom: 50px">
             <div slot="header" class="clearfix">
-                <span>器材</span>
+                <span style="font-size: 16px;">器材</span>
                 <router-link to='/user/equipment'>
-                    <el-button style=" cursor: pointer; padding: 3px 0" type="text">更多</el-button>
+                    <el-button style=" cursor: pointer; float: right;font-size: 14px;" type="text">更多</el-button>
                 </router-link>
             </div>
             <div id="echarts1"></div>
         </el-card>
-        <el-card style="width: 98%;" class="box-appointment">
+        <el-card style="width: 98%; " class="box-appointment">
             <div slot="header" class="clearfix">
                 <!--        头部-->
                 <div class="hd">
@@ -107,7 +110,7 @@
                             <!-- 可预约 -->
                             <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 0 && hasAuth('sys:appointment:forbid')"
                                 @click="sysOrder(idx, vdState.placeName, vdState.placeid, vdState.vdstatedate, vdState.id)"
-                                style="background-color: #34bfa7;border-color: #34bfa7"></i>
+                                style="background-color: #409EFF;border-color: #409EFF"></i>
                             <!-- 不可用 -->
                             <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 1" style="background-color:#ccc;"
                                 @click="notOrder()"></i>
@@ -207,6 +210,7 @@ export default {
             },
             timer: undefined,
             nowTime: new Date(),
+            bgImg: require('@/assets/index_bg.png')
         }
     },
     created() {
@@ -232,6 +236,10 @@ export default {
             this.$globalWebSocket.ws.onmessage = this.getMessage
         },
         getMessage(e) {
+            this.$notify.info({
+                title: '通知',
+                message: e.data
+            });
             this.getEquipmentList();
         },
         sysOrder(idx, placeName, placeId, orderDate, placeStateId) {
@@ -255,13 +263,18 @@ export default {
         },
         sysOrderPlace() {
             this.$axios.post("/appointment/order", this.orderForm).then(res => {
-                this.$message({
-                    type: 'success',
-                    message: this.orderForm.radio == 2 ? '预约成功' : '禁止成功',
-                    onClose: () => {
-                        this.getPlaceStateList()
-                    }
-                });
+                console.log(res.data);
+                if (res.data.success) {
+                    this.$message({
+                        showClose: true,
+                        message: '预约成功',
+                        type: 'success',
+                        onClose: () => {
+                            this.getEquipmentList()
+                        }
+                    });
+                }
+
                 this.dialogVisible = false;
             })
         },
@@ -398,7 +411,7 @@ export default {
 }
 
 .hd span:nth-child(3) i {
-    background-color: #34bfa7;
+    background-color: #409EFF;
 }
 
 .hd span:nth-child(4) i {
@@ -446,7 +459,7 @@ export default {
 .bd span {
     display: flex;
     flex: 1;
-    height: 40px;
+    height: 100px;
     text-align: center;
     /*line-height: 40px;*/
     justify-content: center;
@@ -608,5 +621,11 @@ export default {
     width: 40%;
     float: left;
     margin-left: 40px;
+}
+
+@media (max-width: 1200px) {
+    .left-notice img {
+        display: none;
+    }
 }
 </style>

@@ -25,10 +25,17 @@ export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'layout',
     components: { Aside, Header, Tabs },
+    data() {
+        return {
+            socket: null,
+            userId: sessionStorage.getItem("userId")
+        }
+    },
     created() {
         if (this.userId != null) {
             this.initWebSocket();
         }
+
     },
     methods: {
         initWebSocket() {
@@ -36,7 +43,6 @@ export default {
             if ("WebSocket" in window) {
                 console.log("您的浏览器支持 WebSocket!");
                 let socketUrl = "http://8.134.10.8:8081/websocket/" + this.userId;
-                console.log(socketUrl);
                 socketUrl = socketUrl.replace("https", "ws").replace("http", "ws");
                 that.ws = new WebSocket(socketUrl);
                 that.$globalWebSocket.setWs(that.ws);
@@ -52,7 +58,7 @@ export default {
             } else {
                 console.log("您的浏览器不支持 WebSocket!");
             }
-        }
+        },
     },
     watch: {
         $route(to, from) {
@@ -81,5 +87,9 @@ export default {
 
 .el-header {
     padding: 0 0;
+}
+
+.el-main {
+    height: 20vh;
 }
 </style>

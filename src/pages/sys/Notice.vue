@@ -2,11 +2,7 @@
   <div>
     <el-form :inline="true">
       <el-form-item>
-        <el-input
-            v-model="searchForm.title"
-            placeholder="公告标题"
-            clearable
-        >
+        <el-input v-model="searchForm.title" placeholder="公告标题" clearable>
         </el-input>
       </el-form-item>
 
@@ -19,44 +15,27 @@
       </el-form-item>
       <el-form-item>
         <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
-          <el-button type="danger" slot="reference" :disabled="delBtlStatus" v-if="hasAuth('sys:notice:delete')">批量删除</el-button>
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:notice:delete')">批量删除</el-button>
         </el-popconfirm>
       </el-form-item>
     </el-form>
 
-    <el-table
-        ref="multipleTable"
-        :data="tableData"
-        tooltip-effect="dark"
-        style="width: 100%"
-        border
-        stripe
-        @selection-change="handleSelectionChange">
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange">
 
-      <el-table-column
-          type="selection"
-          width="55">
+      <el-table-column type="selection" width="55">
       </el-table-column>
 
-      <el-table-column
-          label="公告编号"
-          width="80"
-          prop="id">
+      <el-table-column label="公告编号" width="80" prop="id">
       </el-table-column>
 
-      <el-table-column
-          prop="title"
-          label="公告标题"
-          width="200">
+      <el-table-column prop="title" label="公告标题" width="200">
       </el-table-column>
 
-      <el-table-column
-          prop="writer"
-          label="发布者">
+      <el-table-column prop="writer" label="发布者">
       </el-table-column>
-      <el-table-column
-          prop="status"
-          label="公告状态">
+      <el-table-column prop="status" label="公告状态">
         <template slot-scope="scope">
           <el-tag size="small" v-if="scope.row.status === 0" type="success">发布</el-tag>
           <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">未发布</el-tag>
@@ -64,22 +43,11 @@
         </template>
 
       </el-table-column>
-      <el-table-column
-          prop="created"
-          width="200"
-          label="发布时间"
-      >
+      <el-table-column prop="created" width="200" label="发布时间">
       </el-table-column>
-      <el-table-column
-          prop="updated"
-          width="200"
-          label="修改时间"
-      >
+      <el-table-column prop="updated" width="200" label="修改时间">
       </el-table-column>
-      <el-table-column
-          prop="icon"
-          width="260px"
-          label="操作">
+      <el-table-column prop="icon" width="260px" label="操作">
 
         <template slot-scope="scope">
           <el-button type="text" v-if="hasAuth('sys:notice:update')" @click="editHandle(scope.row.id)">编辑</el-button>
@@ -95,21 +63,12 @@
 
     </el-table>
 
-    <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[10, 20, 50, 100]"
-        :current-page="current"
-        :page-size="size"
-        :total="total">
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
     </el-pagination>
     <!--新增对话框-->
-    <el-dialog
-        title="提示"
-        :visible.sync="dialogVisible"
-        width="600px"
-        :before-close="handleClose">
+    <el-dialog title="公告" :visible.sync="dialogVisible" top="20px" width="90%" :before-close="handleClose">
 
       <el-form :model="editForm" :rules="editFormRules" ref="editForm">
         <el-form-item label="公告标题" prop="title" label-width="100px">
@@ -120,11 +79,11 @@
           <el-input v-model="editForm.writer" autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item label="公告内容"  prop="content" label-width="100px">
-          <el-input type="textarea" :rows="10" placeholder="请输入公告内容" v-model="editForm.content" autocomplete="off"></el-input>
+        <el-form-item label="公告内容" prop="content" label-width="100px">
+          <v-md-editor v-model="editForm.content" height="500px"></v-md-editor>
         </el-form-item>
 
-        <el-form-item label="状态"  prop="status" label-width="100px">
+        <el-form-item label="状态" prop="status" label-width="100px">
           <el-radio-group v-model="editForm.status">
             <el-radio :label="0">发布</el-radio>
             <el-radio :label="1">未发布</el-radio>
@@ -156,16 +115,16 @@ export default {
       tableData: [],
       editFormRules: {
         title: [
-          {required: true, message: '请输入公告标题', trigger: 'blur'}
+          { required: true, message: '请输入公告标题', trigger: 'blur' }
         ],
         writer: [
-          {required: true, message: '请输入公告发布者', trigger: 'blur'}
+          { required: true, message: '请输入公告发布者', trigger: 'blur' }
         ],
         content: [
-          {required: true, message: '请输入公告内容', trigger: 'blur'}
+          { required: true, message: '请输入公告内容', trigger: 'blur' }
         ],
         status: [
-          {required: true, message: '请选择状态', trigger: 'blur'}
+          { required: true, message: '请选择状态', trigger: 'blur' }
         ]
       },
       multipleSelection: [],
@@ -175,7 +134,7 @@ export default {
         label: 'name'
       },
       roleForm: {},
-      roleTreeData:  [],
+      roleTreeData: [],
       treeCheckedKeys: [],
       checkStrictly: true
     }
@@ -197,9 +156,9 @@ export default {
       let date = new Date(time);
       let year = date.getFullYear();
       let month =
-          date.getMonth() + 1 < 10
-              ? "0" + (date.getMonth() + 1)
-              : date.getMonth() + 1;
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
       let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
       return (year + "-" + month + "-" + day);
     },
@@ -241,7 +200,7 @@ export default {
         this.tableData = res.data.data.pageData.records
         for (let i = 0; i < this.tableData.length; i++) {
           this.tableData[i].created = this.dateFormat(this.tableData[i].created);
-          if (this.tableData[i].updated){
+          if (this.tableData[i].updated) {
             this.tableData[i].updated = this.dateFormat(this.tableData[i].updated);
           }
         }
@@ -255,18 +214,18 @@ export default {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           console.log(this.editForm);
-          this.$axios.post('/sys/notice/' + (this.editForm.id?'update' : 'save'), this.editForm)
-              .then(res => {
-                this.$message({
-                  showClose: true,
-                  message: '恭喜你，操作成功',
-                  type: 'success',
-                  onClose:() => {
-                    this.getNoticeList()
-                  }
-                });
-                this.dialogVisible = false
-              })
+          this.$axios.post('/sys/notice/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getNoticeList()
+                }
+              });
+              this.dialogVisible = false
+            })
         } else {
           console.log('error submit!!');
           return false;
@@ -294,7 +253,7 @@ export default {
           showClose: true,
           message: '恭喜你，操作成功',
           type: 'success',
-          onClose:() => {
+          onClose: () => {
             this.getNoticeList()
           }
         });
@@ -304,6 +263,4 @@ export default {
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

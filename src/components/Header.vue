@@ -7,17 +7,17 @@
                     <i v-if="!isCollapse" class="el-icon-s-fold"></i>
                 </div>
             </el-col>
-            <el-col :span="8" style="display: flex;align-items: center;justify-content: center;">
+            <el-col :span="6" style="display: flex;align-items: center;">
                 <el-avatar shape="circle" :src="logo"></el-avatar>
                 <p class="system-name">广东海洋大学体育管理系统</p>
             </el-col>
-            <el-col :span="10" style="display: flex;justify-content: end;align-items: center;margin-right: 20px;">
+            <el-col :span="6" style="display: flex;justify-content: end;align-items: center;margin-right: 20px;">
                 <router-link to='/user/order'>
                     <span class="order">租用订单</span>
                 </router-link>
-                <el-popover placement="left-end" :width="300" trigger="click">
+                <el-popover popper-class="popoverStyle" placement="left-end" :width="300" trigger="click">
                     <div class="notice_item"
-                        v-for="notice in (this.borrowList.length > 0 ? this.borrowList : this.compensateList)"
+                        v-for="notice in (this.compensateList.length > 0 ? this.compensateList : this.borrowList)"
                         :key="notice.id">
                         <div v-if="notice.equipmentid">
                             <span class="info">
@@ -89,6 +89,7 @@ export default {
     },
     mounted() {
         this.handleMsg();
+        this.open()
     },
     computed: {
         isCollapse() {
@@ -96,12 +97,25 @@ export default {
         },
     },
     methods: {
+        open() {
+            setTimeout(() => {
+                console.log(this.compensateList);
+                if (this.compensateList.length > 0)
+                    this.$alert('请立即支付！', '您有器材赔偿未支付！', {
+                        confirmButtonText: '了解',
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '请到消息处支付'
+                        });
+                    });;
+            }, 1000);
+        },
         getUserInfo() {
             this.userInfo.username = window.sessionStorage.getItem('username')
             this.userInfo.id = window.sessionStorage.getItem('userId')
             this.getCompensateNum();
         },
-        //实时获取echarts的数据
         handleMsg() {
             this.$globalWebSocket.ws.onmessage = this.getMessage
         },
@@ -143,7 +157,12 @@ export default {
                         }
                     });
                 })
-            })
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消支付'
+                });
+            });
         },
         dateFormat(time) {
             let date = new Date(time);
@@ -180,9 +199,10 @@ export default {
                 cancelButtonText: "取消",
                 type: "warning",
             }).then(() => {
+                window.sessionStorage.clear();
+                window.localStorage.clear();
                 this.$axios.post("/logout").then(res => {
                     // 清除缓存
-                    window.sessionStorage.clear();
                     this.$store.commit("resetState");
                     this.$message({
                         message: '注销成功',
@@ -207,6 +227,7 @@ export default {
 
 .order {
     height: 60px;
+    text-wrap: nowrap;
     /*background-color: pink;*/
     line-height: 60px;
     cursor: pointer;
@@ -220,14 +241,8 @@ export default {
     color: #409EFF;
 }
 
-.popover {
-    max-height: 100px;
-    overflow: hidden;
-}
-
 .notice_item {
     border-bottom: 1px solid #868DAA;
-    overflow: hidden;
 }
 
 .item {
@@ -236,13 +251,14 @@ export default {
     color: #fff;
 }
 
+
 .system-name {
     color: #fff;
     font-size: 20px;
     font-weight: 600;
     text-align: center;
     line-height: 56px;
-    width: 350px;
+    width: 260px;
 }
 
 .toggle-button {
@@ -280,9 +296,27 @@ export default {
     border-bottom: 1px solid #409EFF;
 }
 
-@media (max-width: 1024px) {
+.el-dropdown-link {
+    text-wrap: nowrap;
+}
+
+@media (max-width: 1200px) {
     .system-name {
         display: none;
     }
+}
+
+@media (max-width:700px) {
+    .el-avatar {
+        display: none;
+    }
+}
+</style>
+
+<style>
+.popoverStyle {
+    height: 500px;
+    overflow: auto;
+
 }
 </style>

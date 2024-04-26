@@ -83,19 +83,23 @@ export default {
       this.$refs.FormData.validate(async (valid) => {
         if (valid) {
           await this.$axios.post('/login?' + qs.stringify(this.FormData)).then(res => {
-            const jwt = res.headers['authorization'];
-            this.$store.commit('SET_TOKEN', jwt);
-            this.getUserInfo();
-            this.fullscreenLoading = true;
-            setTimeout(() => {
-              this.fullscreenLoading = false;
-              let message = "登录成功，欢迎 " + window.sessionStorage.getItem("username");
-              this.$message({
-                message: message,
-                type: 'success'
-              })
-              this.$router.replace('/index').catch((err) => { this.$router.replace('/index').catch((err) => { }) })
-            }, 1000);
+            if (res.data.code == 200) {
+              const jwt = res.headers['authorization'];
+              this.$store.commit('SET_TOKEN', jwt);
+              this.getUserInfo();
+              this.fullscreenLoading = true;
+              setTimeout(() => {
+                this.fullscreenLoading = false;
+                let message = "登录成功，欢迎 " + window.sessionStorage.getItem("username");
+                this.$message({
+                  message: message,
+                  type: 'success'
+                })
+                this.$router.replace('/index').catch((err) => { this.$router.replace('/index').catch((err) => { }) })
+              }, 1000);
+            } else {
+              this.getCaptcha();
+            }
           }).catch(res => {
             this.getCaptcha();
           })

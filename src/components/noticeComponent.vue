@@ -89,7 +89,7 @@ export default {
   padding-left: 0;
   padding-right: 0;
   font-family: 微软雅黑;
-  fontSize: 14px;
+  font-style: 14px;
   font-weight: 400;
   color: #868DAA;
   display: flex;

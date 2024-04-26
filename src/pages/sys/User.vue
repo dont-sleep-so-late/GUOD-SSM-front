@@ -22,7 +22,7 @@
     </el-form>
 
     <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
-      @selection-change="handleSelectionChange">
+      @selection-change="handleSelectionChange" v-loading="loading">
 
       <el-table-column type="selection" width="55">
       </el-table-column>
@@ -170,7 +170,9 @@ export default {
       roleForm: {},
       roleTreeData: [],
       treeCheckedKeys: [],
-      checkStrictly: true
+      checkStrictly: true,
+      loading: true
+
     }
   },
   created() {
@@ -238,6 +240,8 @@ export default {
         this.size = res.data.data.pageData.size
         this.current = res.data.data.pageData.current
         this.total = res.data.data.pageData.total
+        this.loading = false;
+
       })
     },
 
@@ -278,16 +282,18 @@ export default {
           ids.push(row.id)
         })
       }
-
       this.$axios.post("/sys/user/delete", ids).then(res => {
-        this.$message({
-          showClose: true,
-          message: '恭喜你，操作成功',
-          type: 'success',
-          onClose: () => {
-            this.getUserList()
-          }
-        });
+        if (res.data.success) {
+          this.$message({
+            showClose: true,
+            message: res.data.message,
+            type: 'success',
+            onClose: () => {
+              this.getUserList()
+            }
+          });
+        }
+
       })
     },
 
