@@ -3,6 +3,7 @@ import Vue from "vue";
 import Router from "vue-router";
 import store from "@/store";
 import axios from "@/utils/request";
+import ElMessage from "element-ui";
 
 Vue.use(Router);
 
@@ -98,10 +99,14 @@ router.beforeEach((to, from, next) => {
   let hasRoute = store.state.menus.hasRoute;
   let token = window.sessionStorage.getItem("token");
 
-  if (to.path == "/Login") {
+  if (to.path == "/Login" && !token) {
     next();
   } else if (!token) {
-    next({ path: "/Login" });
+    ElMessage.Message.error("请先登录");
+    next("/Login");
+  } else if (to.path == "/login" && token) {
+    ElMessage.Message.error("请勿重复登录");
+    next({ path: from.path });
   } else if (token && !hasRoute) {
     axios
       .get("/sys/menu/nav", {
