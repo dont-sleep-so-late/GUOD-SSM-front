@@ -1,0 +1,5709 @@
+const { defineConfig } = require("@vue/cli-service");
+module.exports = defineConfig({
+  transpileDependencies: true,
+  lintOnSave: false,
+});
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "esnext",
+    "baseUrl": "./",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ]
+  }
+}
+module.exports = {
+  presets: [
+    '@vue/cli-plugin-babel/preset'
+  ]
+}
+import Vue from "vue";
+import App from "./App";
+import ElementUI from "element-ui";
+import "element-ui/lib/theme-chalk/index.css";
+import axios from "@/utils/request";
+import router from "./router";
+import "./style/base.css";
+import store from "@/store/index";
+import globalWebSocket from "./global";
+import global from "./globalFun";
+import VMdEditor from '@kangc/v-md-editor';
+import '@kangc/v-md-editor/lib/style/base-editor.css';
+import githubTheme from '@kangc/v-md-editor/lib/theme/github.js';
+import '@kangc/v-md-editor/lib/theme/style/github.css';
+import hljs from 'highlight.js';
+VMdEditor.use(githubTheme, {
+  Hljs: hljs,
+});
+Vue.config.productionTip = false;
+Vue.prototype.$axios = axios;
+Vue.prototype.$globalWebSocket = globalWebSocket; 
+Vue.use(ElementUI);
+Vue.use(VMdEditor);
+new Vue({
+  el: "#app",
+  router,
+  render: (h) => h(App),
+  store,
+});
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+i {
+    font-style: normal
+}
+em {
+    font-style: normal;
+    font-size: 12px;
+    color: #424242;
+    margin: 0 0.3em;
+}
+li {
+    list-style: none
+}
+img {
+    border: 0;
+    vertical-align: middle
+}
+button {
+    cursor: pointer
+}
+a {
+    color: #666;
+    text-decoration: none
+}
+a:hover {
+    color: #c81623
+}
+button,
+input {
+    font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif;
+    border: 0;
+    outline: none;
+}
+body {
+    -webkit-font-smoothing: antialiased;
+    background-color: #fff;
+    font: 12px/1.5 Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB, "\5B8B\4F53", sans-serif;
+    color: #666
+}
+.hide,
+.none {
+    display: none
+}
+.clearfix:after {
+    visibility: hidden;
+    clear: both;
+    display: block;
+    content: ".";
+    height: 0
+}
+.clearfix {
+    *zoom: 1
+}
+::-webkit-scrollbar {
+    width: 0 !important;
+}
+<template>
+  <div style="text-align: center;">
+    <h2>你好！{{ userInfo.username }} 同学</h2>
+    <el-form :model="passForm" status-icon :rules="rules" ref="passForm" label-width="100px">
+      <el-form-item label="旧密码" prop="currentPass">
+        <el-input type="password" v-model="passForm.currentPass" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="新密码" prop="password">
+        <el-input type="password" v-model="passForm.password" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="确认密码" prop="checkPass">
+        <el-input type="password" v-model="passForm.checkPass" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm('passForm')">提交</el-button>
+        <el-button @click="resetForm('passForm')">重置</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+<script>
+export default {
+  name: "UserCenter",
+  data() {
+    var validatePass = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'));
+      } else if (value !== this.passForm.password) {
+        callback(new Error('两次输入密码不一致!'));
+      } else {
+        callback();
+      }
+    };
+    return {
+      userInfo: {
+      },
+      passForm: {
+        password: '',
+        checkPass: '',
+        currentPass: ''
+      },
+      rules: {
+        password: [
+          { required: true, message: '请输入新密码', trigger: 'blur' },
+          { min: 6, max: 12, message: '长度在 6 到 12 个字符', trigger: 'blur' }
+        ],
+        checkPass: [
+          { required: true, validator: validatePass, trigger: 'blur' }
+        ],
+        currentPass: [
+          { required: true, message: '请输入当前密码', trigger: 'blur' },
+        ]
+      }
+    }
+  },
+  created() {
+    this.getUserInfo()
+  },
+  methods: {
+    getUserInfo() {
+      this.$axios.get("/sys/userInfo").then(res => {
+        this.userInfo = res.data.data;
+      })
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          const _this = this
+          this.$axios.post('/sys/user/updatePass', this.passForm).then(res => {
+            _this.$alert(res.data.msg, '提示', {
+              confirmButtonText: '确定',
+              callback: action => {
+                this.$refs[formName].resetFields();
+              }
+            });
+          })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+    }
+  }
+}
+</script>
+<style scoped>
+.el-form {
+  width: 420px;
+  margin: 50px auto;
+}
+</style>
+import request from '@/utils/request'
+import axios from "axios";
+import ElMessage from "element-ui";
+const request = axios.create({
+  baseURL: "http:
+  timeout: 50000,
+  headers: { "Content-Type": "application/json;charset=utf-8" },
+});
+request.interceptors.request.use(
+  (config) => {
+    if (!config.headers) {
+      throw new Error(
+        `Expected 'config' and 'config.headers' not to be undefined`
+      );
+    } else
+      config.headers["Authorization"] = window.sessionStorage.getItem("token");
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+request.interceptors.response.use(
+  (response) => {
+    let res = response.data;
+    if (res.code === 200) {
+      return response;
+    } else if (res.code == 400) {
+      ElMessage.Message.error(res.message ? res.message : "系统异常");
+      return response;
+    } else {
+      ElMessage.Message.error(res.message ? res.message : "系统异常");
+      return Promise.reject(response);
+    }
+  },
+  (error) => {
+    const code = error.code;
+    switch (code) {
+      case 404:
+        ElMessage({
+          type: "error",
+          message: error.message,
+        });
+        break;
+      case 401:
+        ElMessage({
+          type: "error",
+          message: "请求参数有误",
+        });
+        break;
+      case 500 | 501 | 502 | 503 | 504 | 505:
+        ElMessage({
+          type: "error",
+          message: "服务器挂了",
+        });
+        break;
+      default:
+        break;
+    }
+    return Promise.reject(new Error(error.message));
+  }
+);
+export default request;
+<template>
+    <div>
+        <el-image :src="captchaImg" class="captchaImg" @click="getCaptcha"></el-image>
+    </div>
+</template>
+<script>
+export default {
+    name: 'Captcha',
+    data() {
+        return {
+            captchaImg: null
+        }
+    },
+    methods: {
+        draw() {
+            let canvas = document.querySelector("#draw")
+            let yuan = canvas.getContext("2d");
+            let arr = [];
+            window.onresize = resizeCanvas;
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            function circle(x, y, r) {
+                this.x = x;
+                this.y = y;
+                this.r = r;
+                this.color = `rgba(${Math.floor(Math.random() * 255)},
+                          ${Math.floor(Math.random() * 255)},
+                          ${Math.floor(Math.random() * 255)}, 0.2)`;
+                this.xMove = parseInt(Math.random() * 10 - 5);
+                this.yMove = parseInt(Math.random() * 10);
+                arr.push(this);
+                this.render = function () {
+                    yuan.beginPath();
+                    yuan.arc(this.x, this.y, this.r, 0, 2 * 3.14, false);
+                    yuan.fillStyle = this.color;
+                    yuan.fill();
+                };
+                this.updated = function () {
+                    this.x = this.x + this.xMove;
+                    this.y = this.y + this.yMove;
+                    this.r = this.r - 0.08;
+                    if (this.r < 0) {
+                        this.remove();
+                    }
+                };
+                this.remove = function () {
+                    for (let i = 0; i < arr.length; i++) {
+                        if (this == arr[i]) {
+                            arr.splice(i, 1);
+                        }
+                    }
+                };
+            }
+            canvas.addEventListener("mousemove", function (e) {
+                new circle(e.offsetX, e.offsetY, 10);
+            });
+            setInterval(function () {
+                yuan.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < arr.length; i++) {
+                    arr[i].render();
+                    arr[i].updated();
+                }
+            }, 30);
+        },
+        getCaptcha() {
+            this.$axios.get('/captcha').then(res => {
+                this.loginForm.key = res.data.data.key;
+                this.captchaImg = res.data.data.captchaImg;
+                this.loginForm.code = '';
+            })
+        }
+    },
+}
+</script>
+<style scoped></style>
+<template>
+  <div style="text-align: center">
+    <div style="text-align: left;width: 1080px;margin: 0 auto">
+      <el-image :src="info.url" class="photo"></el-image>
+      <div class="hd">
+        <h3 @click="changeToPeople()" :class="isShow ? 'tran' : 'blue'" id="details">竞赛信息</h3>
+        <h3 @click="changeToInfo()" :class="isShow ? 'blue' : 'tran'" id="people">报名列表</h3>
+        <div style="float: right" v-if="new Date() < new Date(info.starttime)">
+          <el-button v-if="new Date() < new Date(info.starttime) && info.applyStatus === 1" class="baoMing" @click="apply()">立即报名</el-button>
+          <el-button  v-if="info.applyStatus === 0" class="baoMing" @click="cancel()">取消报名</el-button>
+        </div>
+        <div class="apply">
+          <span v-if="new Date() < new Date(info.starttime)">报名时间&nbsp;</span>
+          <span v-if="new Date() < new Date(info.starttime)">距离报名截止还有 {{ parseInt((new Date(info.starttime).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) }} 天</span>
+          <span v-else>报名结束</span>
+          <p>{{ dateFormat(new Date()) + ' - ' + dateFormat(info.starttime) }}</p>
+        </div>
+      </div>
+      <div class="content-left">
+        <div v-if="!isShow" class="info">
+          <h1 class="name">{{ info.name }}</h1>
+          <p>
+            {{ info.description }}
+          </p>
+        </div>
+        <div v-if="isShow" class="people">
+          <div v-if="applyPeopleList.length > 0" v-for="apply in applyPeopleList">
+          <span>
+            <el-image :src="apply.userAvatar" class="avatar"></el-image>
+          </span>
+            <span>
+            {{'用户名: ' + apply.username}}
+          </span>
+            <span>
+            {{'报名时间: ' + dateFormat(apply.created)}}
+          </span>
+          </div>
+          <div v-if="applyPeopleList.length == 0">
+            暂时无人报名，赶快来报名吧！！！
+          </div>
+        </div>
+      </div>
+      <div class="content-right">
+        <p>
+          <span>竞赛地点</span>
+          {{ info.place }}
+        </p>
+        <p>
+          <span>竞赛创建人</span>
+          {{ info.username }}
+        </p>
+        <p>
+          <span>报名人数</span>
+          {{applyNum}}
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: "competitionDetail",
+  data() {
+    return {
+      competitionId: 0,
+      info: {},
+      isShow: false,
+      applyForm: {},
+      applyPeopleList: [],
+      applyNum: 0,
+      userId: 0
+    }
+  },
+  created() {
+    this.competitionId = sessionStorage.getItem("competitionId");
+    this.userId = sessionStorage.getItem("userId");
+    this.getCompetitionInfo();
+    this.getApplyPeopleList();
+  },
+  methods: {
+    changeToPeople(){
+      this.isShow = false;
+    },
+    changeToInfo(){
+      this.isShow = true;
+    },
+    getApplyPeopleList(){
+      this.$axios.get("/competition/getApplyPeopleList/" + this.competitionId).then(res => {
+        this.applyPeopleList = res.data.data.userApplyList;
+        this.applyNum = this.applyPeopleList.length;
+      })
+    },
+    apply(){
+      this.applyForm.competitionid = this.competitionId;
+      this.applyForm.userid = this.userId;
+      this.$confirm('此操作将报名该比赛, 是否继续?', '报名', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/user/apply/save",this.applyForm).then(res => {
+          this.$message({
+            type: 'success',
+            message: '报名成功!',
+            onClose:() => {
+              this.getCompetitionInfo();
+              this.getApplyPeopleList();
+            }
+          });
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消报名'
+        });
+      });
+    },
+    cancel(){
+      this.$confirm('此操作将取消报名该比赛, 是否继续?', '取消报名', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/user/apply/cancel/" + this.competitionId + "/" + this.userId).then(res => {
+          this.$message({
+            type: 'success',
+            message: '取消报名成功!',
+            onClose:() => {
+              this.getCompetitionInfo();
+              this.getApplyPeopleList();
+            }
+          });
+        })
+      })
+    },
+    getCompetitionInfo() {
+      this.$axios.get("/competition/getCompetitionInfo/" + this.competitionId + "/" + sessionStorage.getItem("userId")).then(res => {
+        this.info = res.data.data.competitionInfo;
+      })
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+          date.getMonth() + 1 < 10
+              ? "0" + (date.getMonth() + 1)
+              : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "年" + month + "月" + day + "日");
+    },
+  }
+}
+</script>
+<style scoped>
+.info{
+  margin-top: 20px;
+  line-height: 25px;
+}
+.people .el-image{
+  width: 36px;
+  height: 36px;
+  vertical-align: middle;
+}
+.people{
+  padding-top: 30px;
+  text-align: center;
+}
+.people div{
+  height: 45px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 20px;
+}
+.people div:nth-last-child(1){
+  border-bottom: 0;
+}
+.people span{
+  display: inline-block;
+  margin-right: 30px;
+  height: 44px;
+  line-height: 44px;
+}
+.people span:nth-child(1){
+  float: left;
+  width: 36px;
+  height: 36px;
+  margin-left: 50px;
+  margin-top: 4px;
+}
+.people span:nth-child(2){
+  text-align: left;
+  width: 150px;
+  margin-right: 50px;
+  margin-left: 50px;
+}
+.people span:nth-child(3){
+  text-align: left;
+  width: 300px;
+  margin-left: 30px;
+  margin-right: 0;
+}
+.avatar{
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  border-radius: 50%;
+}
+.hd{
+  height: 60px;
+  line-height: 60px;
+  border-bottom: 1px solid #ccc;
+}
+.hd h3{
+  display: inline-block;
+  margin: 0;
+  cursor: pointer;
+  width: 100px;
+  height: 58px;
+  line-height: 58px;
+  border-bottom: 2px solid transparent;
+  text-align: center;
+}
+.hd h3:nth-child(1){
+  border-bottom-color:#409EFF ;
+}
+.hd h3:hover{
+  color: #409EFF;
+}
+.hd p{
+  margin: 0;
+}
+.content-left{
+  float: left;
+  width: 750px;
+}
+.content-right{
+  float: left;
+  margin-left: 70px;
+  margin-top: 30px;
+}
+.content-right p{
+  color: #666;
+}
+.content-right p span{
+  display: inline-block;
+  width: 80px;
+  height: 20px;
+  line-height: 20px;
+  font-weight: 600;
+  padding-left: 10px;
+  color: #666;
+  border-left: 5px solid #409EFF;
+}
+.apply{
+  float: right;
+  line-height: 25px;
+  padding-top: 7px;
+  color: #666;
+  font-weight: 600;
+  margin-right: 20px;
+}
+.apply p{
+  font-weight: 400;
+  color: #aaa;
+}
+.name {
+  font-size: 26px;
+  font-weight: 600;
+}
+.baoMing {
+  font-size: 18px;
+  font-weight: 600;
+  background-color: #34bfa7;
+  color: #ffffff;
+}
+.photo {
+  width: 1080px;
+  height: 382px;
+}
+.blue{
+  border-bottom-color: #409EFF!important;
+}
+.tran{
+  border-bottom-color: transparent!important;
+}
+</style>
+<template>
+  <div style="text-align: center">
+    <div style="text-align: left;width: 1080px;margin: 0 auto">
+      <div class="title">{{info.title}}</div>
+      <div class="info">
+        <span>{{'发布者：' + info.writer}}</span>
+        <span>{{'发布时间：' + dateFormat(info.created)}}</span>
+      </div>
+      <div class="content">{{info.content}}</div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: "Details",
+  data() {
+    return {
+      noticeId: 0,
+      info: {}
+    }
+  },
+  created() {
+    this.noticeId = sessionStorage.getItem("noticeId");
+    this.getNoticeInfo();
+  },
+  methods: {
+    getNoticeInfo() {
+      this.$axios.get("/notice/info/" + this.noticeId).then(res => {
+        this.info = res.data.data.info;
+      })
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+          date.getMonth() + 1 < 10
+              ? "0" + (date.getMonth() + 1)
+              : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "年" + month + "月" + day + "日");
+    },
+  }
+}
+</script>
+<style scoped>
+.title{
+  font-size: 30px;
+  font-weight: 700;
+  text-align: center;
+}
+.info{
+  text-align: center;
+  color: #ccc;
+  margin: 10px 0;
+}
+.info span{
+  margin: 0 20px;
+}
+.content{
+  margin: 0 auto;
+  width: 900px;
+  font-size: 16px;
+  text-indent: 2em;
+  line-height: 35px;
+}
+</style>
+<template>
+  <div class="competitionContainer">
+    <div v-for="competition in this.competitionList" class="competition">
+      <div>
+        <el-image :src="competition.url"></el-image>
+      </div>
+      <div class="competitionInfo">
+        <h3>
+          <el-tag v-if="new Date() < new Date(competition.starttime)" type="warning">报名中...</el-tag>
+          <el-tag v-if="new Date(competition.starttime) <= new Date() && new Date() <= new Date(competition.endtime)"
+            type="success">比赛中...</el-tag>
+          <el-tag v-if="new Date() > new Date(competition.endtime)">比赛结束</el-tag>
+          <a @click="toDetail(competition.id)" style="cursor: pointer;">{{ competition.name }}</a>
+        </h3>
+        <p>
+          <span class="hd">创建人</span>
+          <span>{{ competition.username }}</span>
+        </p>
+        <p>
+          <span class="hd">竞赛级别</span>
+          <span>全国性</span>
+        </p>
+        <p>
+          <span class="hd">报名时间</span>
+          <span>{{ dateFormat(competition.starttime) + '截至' }}</span>
+        </p>
+        <p>
+          <span class="hd">比赛时间</span>
+          <span>{{ dateFormat(competition.starttime) + ' ~ ' + dateFormat(competition.endtime) }}</span>
+        </p>
+      </div>
+      <div class="info">
+        <p v-if="new Date() < new Date(competition.starttime)">距离报名截止还有 {{ parseInt((new
+          Date(competition.starttime).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) }} 天</p>
+        <p v-else>报名结束</p>
+        <el-button v-if="new Date() < new Date(competition.starttime) && competition.applyStatus === 1"
+          @click="toDetail(competition.id)">点击报名</el-button>
+        <el-button v-if="new Date() < new Date(competition.starttime) && competition.applyStatus === 0"
+          @click="toDetail(competition.id)">取消报名</el-button>
+        <p>
+          <span style="cursor: pointer" @click="toDetail(competition.id)">竞赛详情 ></span>
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: "competition",
+  data() {
+    return {
+      competitionList: [],
+      userId: 0,
+      loading: false
+    }
+  },
+  created() {
+    this.userId = sessionStorage.getItem("userId");
+    this.getUserCompetitionList();
+  },
+  methods: {
+    toDetail(id) {
+      sessionStorage.setItem("competitionId", id);
+      this.$router.push({
+        path: '/user/competitionDetail'
+      })
+    },
+    getUserCompetitionList() {
+      this.$axios.get("/competition/getCompetitionList/" + this.userId).then(res => {
+        this.competitionList = res.data.data.competitionList;
+        this.loading = false;
+      })
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+  }
+}
+</script>
+<style scoped>
+.competitionContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+.competition {
+  width: 25%;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+@media (min-width: 2000px) {
+  .competition {
+    width: 20%;
+  }
+}
+@media (max-width: 1600px) {
+  .competition {
+    width: 33.3%;
+  }
+}
+@media (max-width: 1250px) {
+  .competition {
+    width: 50%;
+  }
+}
+@media (max-width: 900px) {
+  .competition {
+    width: 100%;
+  }
+}
+.competitionInfo {
+  width: 90%;
+}
+h3 {
+  font-size: 18px;
+  margin: 10px 0;
+  letter-spacing: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+p {
+  color: #aaa;
+}
+.hd {
+  width: 100px;
+  overflow: hidden;
+  font-weight: 600;
+  margin-right: 10px;
+}
+.info {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  justify-content: space-between;
+}
+.info .el-button {
+  background-color: #34bfa7;
+  color: #fff;
+  font-weight: 600;
+  padding: 15px 30px;
+}
+.info p {
+  color: #666;
+  font-weight: 600;
+}
+.el-image {
+  width: 100%;
+  border-radius: 15px;
+}
+</style>
+<template>
+  <div class="login" v-loading.fullscreen.lock="fullscreenLoading">
+    <div class="container">
+      <div class="left">
+        <div class="header_logo">
+          <div class="_logo"><img src="@/assets/login_logo.png" /></div>
+          <div class="_title">
+            <h2>体育馆管理系统</h2>
+            <p>GDOU-SMS</p>
+          </div>
+        </div>
+        <div class="big_logo"></div>
+        <div class="foot_logo">
+          <div class="foot_title">
+            <h2>广东海洋大学</h2>
+            <p>GDOU</p>
+          </div>
+        </div>
+      </div>
+      <div class="right">
+        <el-form :hide-required-asterisk="true" class="form-items" :model="FormData" :rules="rules" ref="FormData">
+          <el-form-item prop="username" class="input_lable">
+            <h1>用户名</h1>
+            <el-input v-model="FormData.username" placeholder="请输入账号"></el-input>
+          </el-form-item>
+          <el-form-item prop="password" class="input_lable">
+            <h1>密 码</h1>
+            <el-input placeholder="请输入密码" v-model="FormData.password" show-password></el-input>
+          </el-form-item>
+          <el-form-item class="captcha" prop="code">
+            <h1>验证码</h1>
+            <div class="captchaBox">
+              <el-input @keyup.enter.native="login" v-model="FormData.code"></el-input>
+              <!-- <Captcha /> -->
+              <el-image :src="captchaImg" class="captchaImg" @click="getCaptcha"></el-image>
+            </div>
+          </el-form-item>
+          <el-form-item class="btn_lable">
+            <el-button type="primary" @click="login()" v-loading.fullscreen.lock="fullscreenLoading">登录</el-button>
+            <el-button type="primary" @click="cleanInput()">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import qs from 'qs'
+export default {
+  name: "Login",
+  data() {
+    return {
+      FormData: {
+        username: '',
+        password: '',
+        code: '',
+        key: ''
+      },
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' }
+        ],
+        code: [
+          { required: true, message: '请输入验证码', trigger: 'blur' },
+          { min: 5, max: 5, message: '长度为 5 个字符', trigger: 'blur' }
+        ]
+      },
+      captchaImg: '',
+      fullscreenLoading: false
+    };
+  },
+  created() {
+    this.getCaptcha();
+  },
+  methods: {
+    async login() {
+      this.$refs.FormData.validate(async (valid) => {
+        if (valid) {
+          await this.$axios.post('/login?' + qs.stringify(this.FormData)).then(res => {
+            if (res.data.code == 200) {
+              const jwt = res.headers['authorization'];
+              this.$store.commit('SET_TOKEN', jwt);
+              this.getUserInfo();
+              this.fullscreenLoading = true;
+              setTimeout(() => {
+                this.fullscreenLoading = false;
+                let message = "登录成功，欢迎 " + window.sessionStorage.getItem("username");
+                this.$message({
+                  message: message,
+                  type: 'success'
+                })
+                this.$router.replace('/index').catch((err) => { this.$router.replace('/index').catch((err) => { }) })
+              }, 1000);
+            } else {
+              this.getCaptcha();
+            }
+          }).catch(res => {
+            this.getCaptcha();
+          })
+        } else {
+          this.$message({
+            message: '登录失败',
+            type: 'warning'
+          })
+          return false;
+        }
+      });
+    },
+    async getUserInfo() {
+      await this.$axios.get("/sys/userInfo").then(res => {
+        window.sessionStorage.setItem("userId", res.data.data.id);
+        window.sessionStorage.setItem("username", res.data.data.username);
+        window.sessionStorage.setItem("avatar", res.data.data.avatar);
+      })
+    },
+    forget() {
+      this.$message.info("忘记密码");
+    },
+    cleanInput() {
+      console.log(this.$refs);
+      this.$refs.FormData.resetFields();
+    },
+    getCaptcha() {
+      this.$axios.get('/captcha').then(res => {
+        this.FormData.key = res.data.data.key;
+        this.captchaImg = res.data.data.captchaImg;
+        this.FormData.code = '';
+      })
+    },
+  },
+};
+</script>
+<style scoped>
+.login {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: url(@/assets/login_bg.png);
+  background-size: 100% 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container {
+  width: 1178px;
+  height: 650px;
+  display: flex;
+  flex-direction: row;
+  transition: all 1s;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08),
+    0px 2px 6px 0px rgba(0, 0, 0, 0.06), 0px 4px 8px 2px rgba(0, 0, 0, 0.04);
+}
+.container_active {
+  flex-direction: row-reverse;
+}
+.left {
+  width: 32%;
+  height: 100%;
+  background: url(@/assets/login_left.png) no-repeat;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+.header_logo {
+  display: flex;
+}
+._logo {
+  padding: 20px 20px;
+}
+._title {
+  padding-top: 20px;
+  color: #fff;
+}
+._title p {
+  color: rgb(230, 230, 230);
+  text-indent: 2.5em;
+}
+.foot_logo {
+  position: absolute;
+  bottom: 2%;
+  left: 0;
+  height: 50px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  color: #fff;
+}
+.foot_logo p {
+  color: rgb(230, 230, 230);
+  text-indent: 3em;
+}
+.right {
+  width: 800px;
+  height: 100%;
+  background-color: #fff;
+}
+.form-items {
+  padding: 140px 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
+}
+.loginClassFlag {
+  padding: 70px 200px;
+}
+.captcha h1 {
+  display: block;
+}
+.captchaBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.captcha .el-input {
+  width: 60%;
+}
+.captcha .captchaImg {
+  border-radius: 4px;
+}
+.form-items .el-button {
+  width: 195px;
+  border-radius: 5px;
+}
+.btn_lable {
+  display: flex;
+  margin-top: 20px;
+  justify-content: space-between;
+}
+.remember_forget {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+.remember_forget .el-button {
+  border: none;
+  width: 80px;
+  margin-left: 200px;
+}
+.remember_forget .el-button:hover {
+  background-color: #fff;
+}
+@media (width <=1176px) {
+  .left {
+    display: none;
+  }
+  .right {
+    margin: 0 auto;
+    transition: all linear 1s;
+  }
+}
+</style>
+<template>
+  <div>
+    <el-select v-model="value" @change="changeOtherList">
+      <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+      </el-option>
+    </el-select>
+    <el-table v-if="this.value === '1'" ref="multipleTable" :data="tableData" tooltip-effect="dark"
+      style="width: 100%; margin-top: 10px;" border stripe>
+      <el-table-column label="租用器材" prop="equipmentName">
+      </el-table-column>
+      <el-table-column prop="status" label="租用状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="info">待审批</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 1" type="success">通过</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 2" type="danger">驳回</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 3">归还</el-tag>
+          <el-tag size="small" v-else type="success">归还成功</el-tag>
+          <el-tag size="small" v-if="scope.row.repairsStatus === 0">报修中...</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="starttime" label="租用开始时间">
+      </el-table-column>
+      <el-table-column prop="starttime" label="租用结束时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="300" label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" v-if="scope.row.status === 1" @click="getBackInfo(scope.row.id)">归还</el-button>
+          <el-divider
+            v-if="scope.row.status === 1 && (scope.row.repairsStatus === 1 || scope.row.repairsStatus === null)"
+            direction="vertical"></el-divider>
+          <el-button type="text"
+            v-if="(scope.row.status === 1 || scope.row.status === 3 || scope.row.status === 4) && (scope.row.repairsStatus === 1 || scope.row.repairsStatus === null)"
+            @click="repairs(scope.row.id, scope.row.userid)">报修</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-table v-if="this.value === '2'" ref="multipleTable" :data="tableData" tooltip-effect="dark"
+      style="width: 100%; margin-top: 10px;" border stripe>
+      <el-table-column label="竞赛名称" prop="competitionName">
+      </el-table-column>
+      <el-table-column prop="status" label="参赛状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="success">已报名</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">取消报名</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created" label="参赛时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="300" label="操作">
+        <template slot-scope="scope">
+          <div v-if="new Date() < scope.row.competitionStartTime">
+            <el-button type="text" v-if="scope.row.status === 0"
+              @click="cancel(scope.row.competitionid)">取消报名</el-button>
+            <el-button type="text" v-else @click="apply(scope.row.competitionid)">报名</el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-table v-if="this.value === '3'" ref="multipleTable" :data="tableData" tooltip-effect="dark"
+      style="width: 100%; margin-top: 10px;" border stripe>
+      <el-table-column label="预约编号" width="80" prop="id">
+      </el-table-column>
+      <el-table-column prop="placeName" label="预约场地" width="150">
+      </el-table-column>
+      <el-table-column prop="orderdate" label="预约日期">
+      </el-table-column>
+      <el-table-column prop="orderstart" label="预约开始时间(点)">
+      </el-table-column>
+      <el-table-column prop="orderend" label="预约结束时间(点)">
+      </el-table-column>
+      <el-table-column prop="price" label="预约订单价格">
+      </el-table-column>
+      <el-table-column prop="status" label="预约状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="success">已预约</el-tag>
+          <el-tag size="small" v-else type="danger">取消预约</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created" width="200" label="预约时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="250" label="操作">
+        <template slot-scope="scope">
+          <div v-if="new Date() < new Date(scope.row.orderdate)">
+            <el-button type="text" v-if="scope.row.status === 0"
+              @click="cancelAppointment(scope.row.id)">取消预约</el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" style="margin-top: 10px;" :page-sizes="[10, 20, 50, 100]"
+      :current-page="current" :page-size="size" :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog title="归还" :visible.sync="backFlag" width="600px" :before-close="handleClose">
+      <el-form :model="editForm" ref="editForm">
+        <el-form-item label="器材名称" label-width="100px">
+          <el-input v-model="editForm.equipmentName" :disabled="true" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="租用数量" label-width="100px">
+          <el-input v-model="editForm.number" :disabled="true" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="租用开始时间" label-width="100px">
+          <el-input v-model="editForm.starttime" :disabled="true" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="租用结束时间" label-width="100px">
+          <el-input v-model="editForm.endtime" :disabled="true" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="需支付总金额" label-width="100px">
+          <el-input v-model="editForm.totalmoney" :disabled="true" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="二维码" label-width="100px">
+          <el-image :src="require('@/assets/erweima.jpg')" style="height: 300px;"></el-image>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm('editForm')">取 消</el-button>
+        <el-button type="primary" @click="back()">归 还</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog title="报修" :visible.sync="repairsFlag" width="600px" :before-close="handleClose">
+      <el-form :model="repairsForm" ref="repairsForm">
+        <el-form-item label="报修原因" label-width="100px">
+          <el-input type="textarea" :rows="5" placeholder="请输入报修原因" v-model="repairsForm.repairReason"
+            autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm()">取 消</el-button>
+        <el-button type="primary" @click="goRepairs()">报 修</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "order",
+  data() {
+    return {
+      total: 0,
+      size: 10,
+      current: 1,
+      editForm: {},
+      tableData: [],
+      options: [{
+        value: '1',
+        label: '器材'
+      }, {
+        value: '2',
+        label: '赛事'
+      }, {
+        value: '3',
+        label: '场地'
+      }],
+      value: '1',
+      backFlag: false,
+      repairsForm: {},
+      repairsFlag: false,
+      userId: 0,
+      applyForm: {}
+    }
+  },
+  created() {
+    this.userId = window.sessionStorage.getItem("userId");
+    this.getOrderList();
+  },
+  methods: {
+    cancel(competitionId) {
+      this.$confirm('此操作将取消报名该比赛, 是否继续?', '取消报名', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/user/apply/cancel/" + competitionId + "/" + this.userId).then(res => {
+          this.$message({
+            type: 'success',
+            message: '取消报名成功!',
+            onClose: () => {
+              this.value = '2';
+              this.getOrderList();
+            }
+          });
+        })
+      })
+    },
+    apply(competitionId) {
+      this.applyForm.competitionid = competitionId;
+      this.applyForm.userid = this.userId;
+      this.$confirm('此操作将报名该比赛, 是否继续?', '报名', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/user/apply/save", this.applyForm).then(res => {
+          this.$message({
+            type: 'success',
+            message: '报名成功!',
+            onClose: () => {
+              this.value = '2';
+              this.getOrderList();
+            }
+          });
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消报名'
+        });
+      });
+    },
+    cancelAppointment(appointmentId) {
+      this.$confirm('此操作将取消预约该时间段的场地, 是否继续?', '取消预约', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/appointment/cancel/" + appointmentId).then(res => {
+          this.$message({
+            type: 'success',
+            message: '取消预约成功!',
+            onClose: () => {
+              this.value = '3';
+              this.getOrderList();
+            }
+          });
+        })
+      })
+    },
+    changeOtherList(id) {
+      this.value = id;
+      this.getOrderList();
+    },
+    repairs(id, userId) {
+      this.repairsFlag = true;
+      this.repairsForm.borrowid = id;
+      this.repairsForm.userid = userId;
+    },
+    goRepairs() {
+      this.$axios.post("/user/repairs/save", this.repairsForm).then(res => {
+        this.$message({
+          showClose: true,
+          message: '恭喜你，报修成功',
+          type: 'success',
+          onClose: () => {
+            this.value = '1';
+            this.getOrderList()
+          }
+        });
+        this.repairsFlag = false;
+      })
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.size = val
+      this.getOrderList()
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.current = val
+      this.getOrderList()
+    },
+    resetForm() {
+      this.backFlag = false;
+      this.repairsFlag = false;
+      this.editForm = {}
+    },
+    handleClose() {
+      this.resetForm()
+    },
+    getOrderList() {
+      let url = "";
+      if (this.value === '1') {
+        url = "/borrow/getBorrowOrderByUser/" + this.userId;
+      } else if (this.value === '2') {
+        url = "/user/apply/getApplyOrderByUser/" + this.userId;
+      } else {
+        url = "/appointment/getAppointmentOrderByUser/" + this.userId;
+      }
+      this.$axios.get(url, {
+        params: {
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          if (this.tableData[i].starttime) {
+            this.tableData[i].starttime = this.dateFormat(this.tableData[i].starttime);
+          }
+          if (this.tableData[i].endtime) {
+            this.tableData[i].endtime = this.dateFormat(this.tableData[i].endtime);
+          }
+          if (this.tableData[i].created) {
+            this.tableData[i].created = this.dateFormat(this.tableData[i].created);
+          }
+          if (this.tableData[i].orderdate) {
+            this.tableData[i].orderdate = this.dateFormat(this.tableData[i].orderdate);
+          }
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+      })
+    },
+    back() {
+      this.$axios.post('/borrow/back', this.editForm)
+        .then(res => {
+          this.$message({
+            showClose: true,
+            message: '恭喜你，归还成功',
+            type: 'success',
+            onClose: () => {
+              this.value = '1';
+              this.getOrderList()
+            }
+          });
+          this.backFlag = false;
+        })
+    },
+    getBackInfo(id) {
+      this.$axios.get('/borrow/getBackInfo/' + id).then(res => {
+        this.editForm = res.data.data.backInfo;
+        this.editForm.starttime = this.dateFormat(this.editForm.starttime);
+        this.editForm.endtime = this.dateFormat(this.editForm.endtime);
+        this.backFlag = true;
+        if (new Date().getTime() > new Date(this.editForm.endtime)) {
+          this.editForm.totalmoney = this.editForm.totalmoney * 2;
+        }
+      })
+    }
+  }
+}
+</script>
+<style scoped></style>
+<template>
+  <div>
+    <el-collapse accordion v-loading="loading">
+      <el-collapse-item v-for="notice in this.noticeList" :key="notice.id">
+        <template slot="title">
+          <div class="title">{{ notice.title }}</div>
+        </template>
+        <div class="creator">{{ '发布人: ' + notice.writer }}</div>
+        <div class="time">{{ '发布时间: ' + dateFormat(notice.created) }}</div>
+        <div @click="toNoticeDetail(notice.id)" class="toInfo">查看详情</div>
+      </el-collapse-item>
+    </el-collapse>
+  </div>
+</template>
+<script>
+export default {
+  name: "competition",
+  data() {
+    return {
+      noticeList: [],
+      loading: true
+    }
+  },
+  created() {
+    this.getUserNoticeList();
+  },
+  methods: {
+    toNoticeDetail(id) {
+      sessionStorage.setItem("noticeId", id);
+      this.$router.push({
+        path: '/notice/Details'
+      })
+    },
+    getUserNoticeList() {
+      this.$axios.get("/notice/list").then(res => {
+        this.noticeList = res.data.data.pageData.records;
+        this.loading = false;
+      })
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+  }
+}
+</script>
+<style scoped>
+div {
+  color: #666;
+}
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #666;
+}
+.creator,
+.time,
+.toInfo {
+  font-size: 16px;
+}
+.toInfo:hover {
+  cursor: pointer;
+  color: #409EFF;
+}
+</style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input v-model="searchForm.username" placeholder="用户名" clearable>
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getUserList">搜索</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="dialogVisible = true" v-if="hasAuth('sys:user:save')">新增</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:user:delete')">批量删除</el-button>
+        </el-popconfirm>
+      </el-form-item>
+    </el-form>
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange" v-loading="loading">
+      <el-table-column type="selection" width="55">
+      </el-table-column>
+      <el-table-column label="头像" width="50">
+        <template slot-scope="scope">
+          <el-avatar size="small" :src="scope.row.avatar"></el-avatar>
+        </template>
+      </el-table-column>
+      <el-table-column prop="username" label="用户名" width="120">
+      </el-table-column>
+      <el-table-column prop="code" label="角色名称">
+        <template slot-scope="scope">
+          <el-tag size="small" type="info" v-for="item in scope.row.sysRoles" :key="item.id">{{ item.name }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="email" label="邮箱">
+      </el-table-column>
+      <el-table-column prop="phone" label="手机号">
+      </el-table-column>
+      <el-table-column prop="status" label="状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 1" type="success">正常</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 0" type="danger">禁用</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created" width="200" label="创建时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="260px" label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" @click="roleHandle(scope.row.id)">分配角色</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-button type="text" @click="repassHandle(scope.row.id, scope.row.username)"
+            v-if="hasAuth('sys:user:repass')">重置密码</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-button type="text" @click="editHandle(scope.row.id)">编辑</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <template>
+            <el-popconfirm title="确定删除该用户吗？" @confirm="delHandle(scope.row.id)">
+              <el-button type="text" slot="reference">删除</el-button>
+            </el-popconfirm>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog title="提示" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+      <el-form :model="editForm" :rules="editFormRules" ref="editForm">
+        <el-form-item label="用户名" prop="username" label-width="100px">
+          <el-input v-model="editForm.username" autocomplete="off"></el-input>
+          <el-alert title="初始密码为888888" :closable="false" type="info" style="line-height: 12px;"></el-alert>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email" label-width="100px">
+          <el-input v-model="editForm.email" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone" label-width="100px">
+          <el-input v-model="editForm.phone" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" label-width="100px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label="0">禁用</el-radio>
+            <el-radio :label="1">正常</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm('editForm')">取 消</el-button>
+        <el-button type="primary" @click="submitForm('editForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!-- 分配权限对话框 -->
+    <el-dialog title="分配角色" :visible.sync="roleDialogFormVisible" width="600px">
+      <el-form :model="roleForm">
+        <el-tree :data="roleTreeData" show-checkbox ref="roleTree" :check-strictly=checkStrictly node-key="id"
+          :default-expand-all=true :props="defaultProps">
+        </el-tree>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="roleDialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitRoleHandle('roleForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "User",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      dialogVisible: false,
+      editForm: {
+      },
+      tableData: [],
+      editFormRules: {
+        username: [
+          { required: true, message: '请输入用户名称', trigger: 'blur' }
+        ],
+        email: [
+          { required: true, message: '请输入邮箱', trigger: 'blur' }
+        ],
+        status: [
+          { required: true, message: '请选择状态', trigger: 'blur' }
+        ]
+      },
+      multipleSelection: [],
+      roleDialogFormVisible: false,
+      defaultProps: {
+        children: 'children',
+        label: 'name'
+      },
+      roleForm: {},
+      roleTreeData: [],
+      treeCheckedKeys: [],
+      checkStrictly: true,
+      loading: true
+    }
+  },
+  created() {
+    this.getUserList()
+    this.$axios.get("/sys/role/list").then(res => {
+      this.roleTreeData = res.data.data.pageData.records
+    })
+  },
+  methods: {
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+      this.delBtlStatus = val.length == 0
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.size = val
+      this.getUserList()
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.current = val
+      this.getUserList()
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogVisible = false
+      this.editForm = {}
+    },
+    handleClose() {
+      this.resetForm('editForm')
+    },
+    getUserList() {
+      this.$axios.get("/sys/user/list", {
+        params: {
+          username: this.searchForm.username,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          this.tableData[i].created = this.dateFormat(this.tableData[i].created);
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+        this.loading = false;
+      })
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.$axios.post('/sys/user/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getUserList()
+                }
+              });
+              this.editForm = {}
+              this.dialogVisible = false
+            })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    editHandle(id) {
+      this.$axios.get('/sys/user/info/' + id).then(res => {
+        this.editForm = res.data.data.info
+        this.dialogVisible = true
+      })
+    },
+    delHandle(id) {
+      let ids = []
+      if (id) {
+        ids.push(id)
+      } else {
+        this.multipleSelection.forEach(row => {
+          ids.push(row.id)
+        })
+      }
+      this.$axios.post("/sys/user/delete", ids).then(res => {
+        if (res.data.success) {
+          this.$message({
+            showClose: true,
+            message: res.data.message,
+            type: 'success',
+            onClose: () => {
+              this.getUserList()
+            }
+          });
+        }
+      })
+    },
+    roleHandle(id) {
+      this.roleDialogFormVisible = true
+      this.$axios.get('/sys/user/info/' + id).then(res => {
+        console.log(res.data.data.info);
+        this.roleForm = res.data.data.info;
+        let roleIds = []
+        res.data.data.info.sysRoles.forEach(row => {
+          roleIds.push(row.id)
+        })
+        this.$refs.roleTree.setCheckedKeys(roleIds)
+      })
+    },
+    submitRoleHandle(formName) {
+      let roleIds = this.$refs.roleTree.getCheckedKeys()
+      console.log(roleIds)
+      this.$axios.post('/sys/user/role/' + this.roleForm.id, roleIds).then(res => {
+        this.$message({
+          showClose: true,
+          message: '恭喜你，操作成功',
+          type: 'success',
+          onClose: () => {
+            this.getUserList()
+          }
+        });
+        this.roleDialogFormVisible = false
+      })
+    },
+    repassHandle(id, username) {
+      this.$confirm('将重置用户【' + username + '】的密码, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/sys/user/repass", id).then(res => {
+          this.$message({
+            showClose: true,
+            message: '恭喜你，操作成功',
+            type: 'success',
+          });
+        })
+      }).catch(() => {
+      }) 
+    }
+  }
+}
+</script>
+<style scoped></style>
+./user.vue
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input v-model="searchForm.name" placeholder="器材名称" clearable>
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getEquipmentList">搜索</el-button>
+      </el-form-item>
+    </el-form>
+    <el-table ref="multipleTable" v-loading="loading" :data="tableData" tooltip-effect="dark" style="width: 100%" border
+      stripe>
+      <el-table-column label="器材名称" prop="name">
+      </el-table-column>
+      <el-table-column prop="classification" label="器材类别">
+      </el-table-column>
+      <el-table-column prop="surplus" label="器材余量">
+      </el-table-column>
+      <el-table-column prop="money" label="器材金额(元/天)">
+      </el-table-column>
+      <el-table-column prop="icon" label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" @click="editHandle(scope.row.id)">租用</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination @size-change="handleSizeChange" style="margin-top: 10px;" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog title="租用" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+      <el-form :model="editForm">
+        <el-form-item label="租用数量" label-width="100px">
+          <el-input-number v-model="editForm.number" :min="1" :max="this.maxNum"></el-input-number>
+        </el-form-item>
+        <el-form-item label="租用开始时间" label-width="100px">
+          <el-date-picker v-model="editForm.starttime" type="date" placeholder="选择租用开始时间"
+            :picker-options="pickerOptions"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="租用结束时间" label-width="100px">
+          <el-date-picker v-model="editForm.endtime" type="date" placeholder="选择租用开始时间"
+            :picker-options="pickerOptions"></el-date-picker>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm()">取 消</el-button>
+        <el-button type="primary" @click="submitForm()">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "equipment",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      dialogVisible: false,
+      editForm: {
+        number: 1
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() < Date.now();
+        }
+      },
+      tableData: [],
+      maxNum: 1,
+      loading: true
+    }
+  },
+  created() {
+    this.getEquipmentList();
+  },
+  methods: {
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSizeChange(val) {
+      this.size = val
+      this.getEquipmentList()
+    },
+    handleCurrentChange(val) {
+      this.current = val
+      this.getEquipmentList()
+    },
+    resetForm() {
+      this.editForm = {};
+      this.dialogVisible = false;
+      this.editForm.number = 1;
+    },
+    handleClose() {
+      this.editForm = {};
+      this.editForm.number = 1;
+      this.dialogVisible = false;
+    },
+    getEquipmentList() {
+      this.$axios.get("/equipment/list", {
+        params: {
+          competitionName: this.searchForm.name,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records;
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+        this.loading = false;
+      })
+    },
+    submitForm() {
+      if (this.editForm.starttime.getTime() > this.editForm.endtime.getTime()) {
+        this.$message({
+          showClose: true,
+          message: '租用时间有误',
+          type: 'error'
+        });
+        return;
+      }
+      this.$axios.post('/borrow/save', this.editForm).then(res => {
+        if (res.data.success) {
+          this.$message({
+            showClose: true,
+            message: res.data.message,
+            type: 'success',
+            onClose: () => {
+              this.getEquipmentList()
+            }
+          });
+          this.editForm = {}
+          this.editForm.number = 1
+          this.dialogVisible = false
+        }
+        else {
+          this.$message({
+            showClose: true,
+            message: res.data.message,
+            type: 'erorr',
+          });
+        }
+      })
+    },
+    editHandle(id) {
+      this.dialogVisible = true;
+      this.maxNum = this.tableData[id - 1].surplus;
+      this.editForm.equipmentid = this.tableData[id - 1].id;
+      this.editForm.userid = sessionStorage.getItem("userId");
+    }
+  }
+}
+</script>
+<style scoped></style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input v-model="searchForm.name" placeholder="名称" clearable></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getRoleList">搜索</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="dialogVisible = true" v-if="hasAuth('sys:role:save')">新增</el-button>
+      </el-form-item>
+      <el-popconfirm title="确定批量删除吗？" @confirm="delHandle(null)">
+        <el-button type="danger" slot="reference" :disabled="delBtlStatus" v-if="hasAuth('sys:role:delete')">批量删除</el-button>
+      </el-popconfirm>
+    </el-form>
+    <el-table
+        ref="multipleTable"
+        :data="tableData"
+        tooltip-effect="dark"
+        style="width: 100%"
+        border
+        stripe
+        @selection-change="handleSelectionChange">
+      <el-table-column
+          type="selection"
+          width="55">
+      </el-table-column>
+      <el-table-column
+          prop="name"
+          label="名称"
+          width="120">
+      </el-table-column>
+      <el-table-column
+          prop="code"
+          label="唯一编码"
+          show-overflow-tooltip>
+      </el-table-column>
+      <el-table-column
+          prop="remark"
+          label="描述"
+          show-overflow-tooltip>
+      </el-table-column>
+      <el-table-column
+          prop="status"
+          label="状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 1" type="success">正常</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 0" type="danger">禁用</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+          prop="icon"
+          label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" @click="permHandle(scope.row.id)" v-if="hasAuth('sys:role:perm')">分配权限</el-button>
+          <el-divider direction="vertical" v-if="hasAuth('sys:role:perm')"></el-divider>
+          <el-button type="text" @click="editHandle(scope.row.id)" v-if="hasAuth('sys:role:update')">编辑</el-button>
+          <el-divider direction="vertical" v-if="hasAuth('sys:role:perm')"></el-divider>
+          <template>
+            <el-popconfirm title="确定删除该数据吗？" @confirm="delHandle(scope.row.id)">
+              <el-button type="text" slot="reference" v-if="hasAuth('sys:role:delete')">删除</el-button>
+            </el-popconfirm>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        layout="total, sizes, prev, pager, next, jumper"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="size"
+        :current-page="current"
+        :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog
+        title="新增角色"
+        :visible.sync="dialogVisible"
+        width="600px"
+        :before-close="handleClose">
+      <el-form :model="editForm" :rules="editFormRules" ref="editForm" label-width="100px" class="demo-editForm">
+        <el-form-item label="角色名称" prop="name" label-width="100px">
+          <el-input v-model="editForm.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="唯一编码" prop="code" label-width="100px">
+          <el-input v-model="editForm.code" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="描述" prop="remark" label-width="100px">
+          <el-input v-model="editForm.remark" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" label-width="100px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label=0>禁用</el-radio>
+            <el-radio :label=1>正常</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitForm('editForm')">提交</el-button>
+          <el-button @click="resetForm('editForm')">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+    <el-dialog
+        title="分配权限"
+        :visible.sync="permDialogVisible"
+        width="600px">
+      <el-form :model="permForm">
+        <el-tree
+            :data="permTreeData"
+            show-checkbox
+            ref="permTree"
+            :default-expand-all="true"
+            node-key="id"
+            :props="defaultProps">
+        </el-tree>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="permDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitPermFormHandle('permForm')">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "Role",
+  data(){
+    return{
+      searchForm: {
+      },
+      size: 10,
+      current: 1,
+      total: 0,
+      delBtlStatus: true,
+      tableData: [],
+      editFormRules: {
+        name: [
+          {required: true, message: '请输入角色名称', trigger: 'blur'}
+        ],
+        code: [
+          {required: true, message: '请输入唯一编码', trigger: 'blur'}
+        ],
+        status: [
+          {required: true, message: '请选择状态', trigger: 'blur'}
+        ]
+      },
+      dialogVisible: false,
+      permDialogVisible: false,
+      editForm: {},
+      multipleSelection: [],
+      permForm: {},
+      permTreeData: [],
+      defaultProps: {
+        children: 'children',
+        label: 'name'
+      }
+    }
+  },
+  created() {
+    this.getRoleList();
+  },
+  methods: {
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+      this.delBtlStatus = val.length == 0;
+    },
+    handleSizeChange(val) {
+      this.size = val;
+      this.getRoleList();
+    },
+    handleCurrentChange(val) {
+      this.current = val;
+      this.getRoleList();
+    },
+    handleClose(){
+      this.resetForm('editForm')
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogVisible = false;
+      this.editForm = {};
+    },
+    getRoleList(){
+      this.$axios.get("/sys/role/list",{
+        params: {
+          name: this.searchForm.name,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records;
+        this.size = res.data.data.pageData.size;
+        this.current = res.data.data.pageData.current;
+        this.total = res.data.data.pageData.total;
+      })
+    },
+    submitForm(formName){
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.$axios.post('/sys/role/' + (this.editForm.id ? 'update' : 'save'),this.editForm).then(res => {
+            this.$message({
+              showClose: true,
+              message: '操作成功',
+              type: 'success',
+              onClose: () => {
+                this.getRoleList();
+              }
+            });
+            this.dialogVisible = false;
+            this.editForm = {};
+          })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    editHandle(id){
+      this.$axios.get('/sys/role/info/' + id).then(res => {
+        this.editForm = res.data.data.info;
+        this.dialogVisible = true;
+      })
+    },
+    delHandle(id){
+      let ids = [];
+      if (id){
+        ids.push(id);
+      }else{
+        this.multipleSelection.forEach(row => {
+          ids.push(row.id);
+        })
+      }
+      this.$axios.post("/sys/role/delete",ids).then(res => {
+        this.$message({
+          showClose: true,
+          message: '操作成功',
+          type: 'success',
+          onClose: () => {
+            this.getRoleList();
+          }
+        });
+      })
+    },
+    permHandle(id){
+      this.$axios.get('/sys/menu/list').then(res => {
+        this.permTreeData = res.data.data.menuList;
+        this.permDialogVisible = true;
+        this.$axios.get("/sys/role/info/" + id).then(res => {
+          this.$refs.permTree.setCheckedKeys(res.data.data.info.menuIds);
+          this.permForm = res.data.data.info;
+        })
+      })
+    },
+    submitPermFormHandle(formName){
+      let menuIds = this.$refs.permTree.getCheckedKeys();
+      if (menuIds.indexOf(1) == -1 && (menuIds.indexOf(2) > -1 || menuIds.indexOf(3) > -1 || menuIds.indexOf(4) > -1 || menuIds.indexOf(21) > -1)) menuIds.push(1);
+      if (menuIds.indexOf(5) == -1 && (menuIds.indexOf(6) > -1 || menuIds.indexOf(32) > -1)) menuIds.push(5);
+      if (menuIds.indexOf(36) == -1 && menuIds.indexOf(38) > -1) menuIds.push(36);
+      if (menuIds.indexOf(37) == -1 && (menuIds.indexOf(25) > -1 || menuIds.indexOf(42) > -1)) menuIds.push(37);
+      console.log(menuIds);
+      this.$axios.post("/sys/role/perm/" + this.permForm.id,menuIds).then(res => {
+        this.$message({
+          showClose: true,
+          message: '操作成功',
+          type: 'success',
+          onClose: () => {
+            this.getRoleList();
+          }
+        });
+        this.permDialogVisible = false;
+      })
+    }
+  }
+}
+</script>
+<style scoped>
+.el-pagination{
+  float: right;
+  margin-top: 22px;
+}
+</style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input v-model="searchForm.place" placeholder="场地名称" clearable>
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getPlaceList">搜索</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="dialogVisible = true" v-if="hasAuth('sys:place:save')">新增</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:place:delete')">批量删除</el-button>
+        </el-popconfirm>
+      </el-form-item>
+    </el-form>
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55">
+      </el-table-column>
+      <el-table-column label="场地名称" width="120" prop="place">
+      </el-table-column>
+      <el-table-column label="场地图片" width="120" prop="url">
+        <template slot-scope="scope">
+          <el-image v-if="scope.row.url" :src="scope.row.url"></el-image>
+        </template>
+      </el-table-column>
+      <el-table-column prop="people" label="联系人" width="100">
+      </el-table-column>
+      <el-table-column prop="phone" label="联系电话">
+      </el-table-column>
+      <el-table-column prop="address" label="场地地址">
+      </el-table-column>
+      <el-table-column prop="status" label="场地信息状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="success">发布</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">未发布</el-tag>
+          <el-tag size="small" v-else type="info">暂存</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created" width="200" label="创建时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="260px" label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" v-if="hasAuth('sys:place:update')" @click="editHandle(scope.row.id)">编辑</el-button>
+          <el-divider direction="vertical" v-if="hasAuth('sys:place:update')"></el-divider>
+          <template>
+            <el-popconfirm title="这是一段内容确定删除吗？" v-if="hasAuth('sys:place:delete')" @confirm="delHandle(scope.row.id)">
+              <el-button type="text" slot="reference">删除</el-button>
+            </el-popconfirm>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog title="提示" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+      <el-form :model="editForm" :rules="editFormRules" ref="editForm">
+        <el-form-item label="场地名称" prop="place" label-width="100px">
+          <el-input v-model="editForm.place" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="联系人" prop="people" label-width="100px">
+          <el-input v-model="editForm.people" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="联系电话" prop="phone" label-width="100px">
+          <el-input v-model="editForm.phone" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="场地地址" prop="address" label-width="100px">
+          <el-input v-model="editForm.address" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="场地描述" prop="description" label-width="100px">
+          <el-input type="textarea" :rows="10" placeholder="请输入场地描述" v-model="editForm.description"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" label-width="100px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label="0">发布</el-radio>
+            <el-radio :label="1">未发布</el-radio>
+            <el-radio :label="2">暂存</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="场地图片" label-width="100px">
+          <el-upload class="avatar-uploader" :show-file-list="false" action="action" :http-request="upload"
+            :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+            <el-image v-if="this.imgUrl" :src="this.imgUrl" class="avatar"></el-image>
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm('editForm')">取 消</el-button>
+        <el-button type="primary" @click="submitForm('editForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "Place",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      dialogVisible: false,
+      editForm: {},
+      tableData: [],
+      editFormRules: {
+        place: [
+          { required: true, message: '请输入场地名称', trigger: 'blur' }
+        ],
+        people: [
+          { required: true, message: '请输入联系人', trigger: 'blur' }
+        ],
+        phone: [
+          { required: true, message: '请输入联系电话', trigger: 'blur' }
+        ],
+        address: [
+          { required: true, message: '请输入场地地址', trigger: 'blur' }
+        ],
+        description: [
+          { required: true, message: '请输入场地描述', trigger: 'blur' }
+        ],
+        status: [
+          { required: true, message: '请选择状态', trigger: 'blur' }
+        ]
+      },
+      multipleSelection: [],
+      roleDialogFormVisible: false,
+      defaultProps: {
+        children: 'children',
+        label: 'name'
+      },
+      roleForm: {},
+      roleTreeData: [],
+      treeCheckedKeys: [],
+      checkStrictly: true,
+      imgUrl: ''
+    }
+  },
+  created() {
+    this.getPlaceList();
+  },
+  methods: {
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    upload(param) {
+      console.log(param);
+      const formData = new FormData()
+      formData.append('file', param.file)
+      this.$axios.post('/upload/img', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => {
+        this.imgUrl = res.data.data.fileUrl;
+        console.log(this.editForm.url);
+      })
+    },
+    handleAvatarSuccess(res, file) {
+      console.log(res);
+      console.log(file);
+    },
+    beforeAvatarUpload(file) {
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+      return isLt2M;
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSelectionChange(val) {
+      console.log("勾选")
+      console.log(val)
+      this.multipleSelection = val;
+      this.delBtlStatus = val.length == 0
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.size = val
+      this.getPlaceList()
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.current = val
+      this.getPlaceList()
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogVisible = false
+      this.imgUrl = ''
+      this.editForm = {}
+    },
+    handleClose() {
+      this.imgUrl = '';
+      this.resetForm('editForm')
+    },
+    getPlaceList() {
+      this.$axios.get("/sys/place/list", {
+        params: {
+          placeName: this.searchForm.place,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          this.tableData[i].created = this.dateFormat(this.tableData[i].created);
+          if (this.tableData[i].updated) {
+            this.tableData[i].updated = this.dateFormat(this.tableData[i].updated);
+          }
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+      })
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          console.log(this.editForm);
+          this.editForm.url = this.imgUrl;
+          this.$axios.post('/sys/place/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getPlaceList()
+                }
+              });
+              this.dialogVisible = false
+              this.imgUrl = '';
+            })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    editHandle(id) {
+      this.$axios.get('/sys/place/info/' + id).then(res => {
+        this.editForm = res.data.data.info
+        this.dialogVisible = true
+        this.imgUrl = this.editForm.url
+      })
+    },
+    delHandle(id) {
+      let ids = []
+      if (id) {
+        ids.push(id)
+      } else {
+        this.multipleSelection.forEach(row => {
+          ids.push(row.id)
+        })
+      }
+      console.log(ids)
+      this.$axios.post("/sys/place/delete", ids).then(res => {
+        let mes = res.success ? 'success' : 'error'
+        this.$message({
+          showClose: true,
+          message: res.message,
+          type: mes,
+          onClose: () => {
+            this.getPlaceList()
+          }
+        });
+      })
+    }
+  }
+}
+</script>
+<style scoped>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409EFF;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+  border: 1px dashed #d9d9d9;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>
+<template>
+    <div id="main">
+        <noticeComponent v-if="notice" :text="notice" @click="openTip" />
+        <div class="left-notice">
+            <el-tabs style="float: left; margin-bottom: 20px; width: 98%; height: 370px;" type="border-card">
+                <div style="float: left; width: 40%; height: 100%; padding: 20px;">
+                    <el-avatar :size="155" shape="circle" :src="userInfo.avatar"
+                        style="float: left; margin-right: 30px;"></el-avatar>
+                    <div style="margin-top: 20px;">
+                        <span style="display: block; font-size: 1.5rem;">您好，{{ userInfo.username }}，请开始一天的工作吧</span>
+                        <span style="display: block; font-size: 1rem; margin-top: 10px;">当前时间:{{ nowTime }}</span>
+                    </div>
+                    <div style="margin-top: 70px; width: 600px;">
+                        <div slot="header" class="clearfix">
+                            <h3>通知公告</h3>
+                        </div>
+                        <br>
+                        <div v-for="notice in this.noticeList.slice(0, 3)" class="text item"
+                            @click="toNoticeDetail(notice.id)">
+                            <span class="title">{{ notice.title.length > 30 ? notice.title.substring(0, 30) + "..." :
+                                notice.title }}</span>
+                            <span class="time">{{ dateFormat(notice.created) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="height: 100%;width:50%;overflow: hidden;float: right;">
+                    <img style="width: 100%; height: 100%;position: relative;top:-120px;" :src="bgImg" alt="">
+                </div>
+            </el-tabs>
+        </div>
+        <el-card style="width: 98%;margin-bottom: 50px">
+            <div slot="header" class="clearfix">
+                <span style="font-size: 16px;">器材</span>
+                <router-link to='/user/equipment'>
+                    <el-button style=" cursor: pointer; float: right;font-size: 14px;" type="text">更多</el-button>
+                </router-link>
+            </div>
+            <div id="echarts1"></div>
+        </el-card>
+        <el-card style="width: 98%; " class="box-appointment">
+            <div slot="header" class="clearfix">
+                <!--        头部-->
+                <div class="hd">
+                    <span>场地预约情况</span>
+                    <span><i></i>已预约</span>
+                    <span><i></i>可预约</span>
+                    <span><i></i>不可用</span>
+                    <el-select v-model="curDate" @change="ChangeDate">
+                        <el-option v-for="placeState in this.placeStateList" :key="placeState.id"
+                            :label="placeState.date" :value="placeState.id">
+                        </el-option>
+                    </el-select>
+                </div>
+                <!--        时间段-->
+                <div class="content">
+                    <div class="placeTime">
+                        <span>场地</span>
+                        <span>8:00 <br>
+                            ~<br>
+                            9:00
+                        </span>
+                        <span>9:00 <br>
+                            ~<br>
+                            10:00
+                        </span>
+                        <span>10:00 <br>
+                            ~<br>
+                            11:00
+                        </span>
+                        <span>11:00 <br>
+                            ~<br>
+                            12:00
+                        </span>
+                        <span>12:00 <br>
+                            ~<br>
+                            13:00
+                        </span>
+                        <span>13:00 <br>
+                            ~<br>
+                            14:00
+                        </span>
+                        <span>14:00 <br>
+                            ~<br>
+                            15:00
+                        </span>
+                        <span>15:00 <br>
+                            ~<br>
+                            16:00
+                        </span>
+                        <span>16:00 <br>
+                            ~<br>
+                            17:00
+                        </span>
+                        <span>17:00 <br>
+                            ~<br>
+                            18:00
+                        </span>
+                        <span>18:00 <br>
+                            ~<br>
+                            19:00
+                        </span>
+                        <span>19:00 <br>
+                            ~<br>
+                            20:00
+                        </span>
+                    </div>
+                    <div v-for="vdState in this.placeStateList[this.dateIndex]?.vdstateList" class="bd">
+                        <span>{{ vdState.placeName }}</span>
+                        <span v-for="idx in vdState.vdstatest.length" :key="idx">
+                            <!-- 可预约 -->
+                            <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 0 && hasAuth('sys:appointment:forbid')"
+                                @click="sysOrder(idx, vdState.placeName, vdState.placeid, vdState.vdstatedate, vdState.id)"
+                                style="background-color: #409EFF;border-color: #409EFF"></i>
+                            <!-- 不可用 -->
+                            <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 1" style="background-color:#ccc;"
+                                @click="notOrder()"></i>
+                            <!-- 已预约 -->
+                            <i v-if="vdState.vdstatest.substring(idx - 1, idx) == 2"
+                                style="background-color:#bf8f43; border-color: #bf8f43" @click="notOrder()"></i>
+                        </span>
+                        <el-dialog title="预约" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+                            <el-form :model="orderForm.radio" ref="orderForm">
+                                <el-form-item label="预约状态" prop="title" label-width="100px">
+                                    <el-radio v-model="orderForm.radio" label="2">预约</el-radio>
+                                    <el-radio v-model="orderForm.radio" label="1">禁止</el-radio>
+                                </el-form-item>
+                            </el-form>
+                            <div slot="footer" class="dialog-footer">
+                                <el-button @click="resetForm()">取 消</el-button>
+                                <el-button type="primary" @click="sysOrderPlace">确 定</el-button>
+                            </div>
+                        </el-dialog>
+                    </div>
+                </div>
+            </div>
+        </el-card>
+        <el-card style="width: 98%;" class="box-competition">
+            <div slot="header" class="clearfix">
+                <span>赛事列表</span>
+                <router-link to='/user/competition'>
+                    <el-button style="float: right; cursor: pointer; padding: 3px 0" type="text">更多</el-button>
+                </router-link>
+                <div style="margin-top: 10px;">
+                    <div v-for="competition in this.competitionList.slice(0, 4)" class="competition"
+                        @click="toDetail(competition.id)">
+                        <el-image :src="competition.url" class="competition_photo"></el-image>
+                        <div>
+                            <div style="font-size: 14px;">
+                                <el-tag type="success">最新发布</el-tag>
+                                <span>
+                                    <el-tag v-if="new Date() < new Date(competition.starttime)"
+                                        type="warning">报名中...</el-tag>
+                                    <el-tag
+                                        v-else-if="new Date(competition.starttime) <= new Date() && new Date() <= new Date(competition.endtime)"
+                                        type="success">比赛中...</el-tag>
+                                    <el-tag v-else>比赛结束</el-tag>
+                                </span>
+                                {{ competition.name }}
+                            </div>
+                            <div class="creator">
+                                {{ '创建人: ' + competition.username }}
+                            </div>
+                            <div>
+                                <el-button
+                                    v-if="new Date() < new Date(competition.starttime) && competition.applyStatus === 1"
+                                    class="apply">立即报名
+                                </el-button>
+                                <el-button v-if="competition.applyStatus === 0" style="background-color:#ccc;"
+                                    class="apply">已报名</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </el-card>
+    </div>
+</template>
+<script>
+import noticeComponent from "@/components/noticeComponent";
+import * as echarts from 'echarts';
+export default {
+    name: "index",
+    components: {
+        noticeComponent
+    },
+    data() {
+        return {
+            notice: '公告：',
+            activeName: 'first',
+            noticeList: [],
+            placeList: [],
+            competitionList: [],
+            placeStateList: [],
+            chartDom: "",
+            myChart: "",
+            option: "",
+            source: [
+                ['product', '剩余', '租用价格']
+            ],
+            curDate: '请选择预约时间',
+            dateIndex: -1,
+            orderForm: {},
+            dialogVisible: false,
+            userId: 0,
+            userInfo: {
+                id: "",
+                username: "",
+                avatar: "",
+            },
+            timer: undefined,
+            nowTime: new Date(),
+            bgImg: require('@/assets/index_bg.png')
+        }
+    },
+    created() {
+        this.getPlaceStateList();
+        this.userId = sessionStorage.getItem("userId");
+        this.getUserCompetitionList();
+        this.getNoticeList();
+        this.timer = setInterval(() => {
+            this.nowTime = new Date().toLocaleString();
+        });
+    },
+    mounted() {
+        setTimeout(() => {
+            this.getEquipmentList();
+        }, 100);
+        this.handleMsg();
+        this.getUserInfo()
+    },
+    methods: {
+        handleMsg() {
+            this.$globalWebSocket.ws.onmessage = this.getMessage
+        },
+        getMessage(e) {
+            this.$notify.info({
+                title: '通知',
+                message: e.data
+            });
+            this.getEquipmentList();
+        },
+        sysOrder(idx, placeName, placeId, orderDate, placeStateId) {
+            this.dialogVisible = true;
+            this.orderForm = {
+                placeid: placeId,
+                orderdate: orderDate,
+                userid: sessionStorage.getItem("userId"),
+                orderstart: idx + 7,
+                orderend: idx + 8,
+                price: 15,
+                placeStateId: placeStateId
+            }
+            console.log(this.orderForm)
+        },
+        notOrder() {
+            this.$message({
+                type: 'error',
+                message: '不可预约!',
+            });
+        },
+        sysOrderPlace() {
+            this.$axios.post("/appointment/order", this.orderForm).then(res => {
+                console.log(res.data);
+                if (res.data.success) {
+                    this.$message({
+                        showClose: true,
+                        message: '预约成功',
+                        type: 'success',
+                        onClose: () => {
+                            this.getEquipmentList()
+                        }
+                    });
+                }
+                this.dialogVisible = false;
+            })
+        },
+        cancelOrder() {
+            this.dialogVisible = true
+        },
+        resetForm() {
+            this.dialogVisible = false;
+        },
+        handleClose() {
+            this.resetForm()
+        },
+        ChangeDate(id) {
+            this.curDate = this.placeStateList[id].date;
+            this.dateIndex = this.placeStateList[id].id;
+        },
+        getPlaceStateList() {
+            this.$axios.get("/place/vdstate/getPlaceState").then(res => {
+                console.log(res.data.data.placeDateStateList)
+                this.placeStateList = res.data.data.placeDateStateList;
+                for (let i = 0; i < this.placeStateList.length; i++) {
+                    this.placeStateList[i].date = this.dateFormat(this.placeStateList[i].date);
+                }
+                if (this.placeStateList.length > 0 && this.curDate === '请选择预约时间' && this.dateIndex === -1) {
+                    this.curDate = this.placeStateList[0].date;
+                    this.dateIndex = this.placeStateList[0].id;
+                }
+            })
+        },
+        initChart() {
+            this.option = {
+                legend: {},
+                tooltip: {},
+                dataset: {
+                    source: this.source
+                },
+                xAxis: { type: 'category' },
+                yAxis: {},
+                series: [{ type: 'bar' }, { type: 'bar' }]
+            };
+            this.option && this.myChart.setOption(this.option);
+        },
+        toDetail(id) {
+            sessionStorage.setItem("competitionId", id);
+            this.$router.push({
+                path: '/user/competitionDetail'
+            })
+        },
+        toNoticeDetail(id) {
+            sessionStorage.setItem("noticeId", id);
+            this.$router.push({
+                path: '/notice/Details'
+            })
+        },
+        openTip() {
+        },
+        handleClick(tab, event) {
+            console.log(tab, event);
+        },
+        getUserCompetitionList() {
+            this.$axios.get("/sys/userInfo").then(res => {
+                let id = res.data.data.id;
+                this.$axios.get("/competition/getCompetitionList/" + id).then(res => {
+                    this.competitionList = res.data.data.competitionList;
+                })
+            })
+        },
+        getEquipmentList() {
+            this.$axios.get('/equipment/list').then(res => {
+                for (let i = 0; i < res.data.data.pageData.records.length; i++) {
+                    let tmp = [];
+                    tmp.push(res.data.data.pageData.records[i].name);
+                    tmp.push(res.data.data.pageData.records[i].surplus);
+                    tmp.push(res.data.data.pageData.records[i].money);
+                    this.source.push(tmp);
+                }
+                this.$nextTick(() => {
+                    this.chartDom = document.getElementById("echarts1");
+                    this.myChart = echarts.init(this.chartDom);
+                    this.initChart();
+                });
+            })
+        },
+        getNoticeList() {
+            this.$axios.get('/notice/list').then(res => {
+                this.noticeList = res.data.data.pageData.records;
+                for (let i = 0; i < this.noticeList.length; i++) {
+                    this.notice += (i + 1) + ". " + this.noticeList[i].title + " ";
+                }
+            })
+        },
+        getUserInfo() {
+            this.userInfo.username = window.sessionStorage.getItem('username')
+            this.userInfo.avatar = window.sessionStorage.getItem('avatar')
+        },
+        dateFormat(time) {
+            let date = new Date(time);
+            let year = date.getFullYear();
+            let month =
+                date.getMonth() + 1 < 10
+                    ? "0" + (date.getMonth() + 1)
+                    : date.getMonth() + 1;
+            let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+            return (year + "-" + month + "-" + day);
+        },
+    }
+}
+</script>
+<style scoped>
+.hd {
+    height: 40px;
+    line-height: 40px;
+}
+.hd span {
+    margin-right: 20px;
+}
+.hd i {
+    display: inline-block;
+    height: 13px;
+    width: 13px;
+    margin-bottom: -3px;
+    margin-right: 3px;
+    border: 2px solid transparent;
+}
+.hd span:nth-child(2) i {
+    background-color: #bf8f43;
+}
+.hd span:nth-child(3) i {
+    background-color: #409EFF;
+}
+.hd span:nth-child(4) i {
+    background-color: #ccc;
+}
+.content {
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    border-radius: 5px 5px 0 0;
+    overflow: hidden;
+}
+.placeTime {
+    display: flex;
+    width: 100%;
+    background-color: #f2f2f2;
+}
+.placeTime span {
+    flex: 1;
+    text-align: center;
+    line-height: 15px;
+    color: #333333;
+    border-left: 1px solid #ebebeb;
+    padding: 8px 0;
+}
+.placeTime span:nth-child(1) {
+    line-height: 45px;
+    border-left: 0;
+}
+.bd {
+    display: flex;
+}
+.bd span {
+    display: flex;
+    flex: 1;
+    height: 100px;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    border-top: 1px solid #ebebeb;
+    border-right: 1px solid #ebebeb;
+}
+.bd span i {
+    display: inline-block;
+    width: 78%;
+    height: 60%;
+    border: 2px solid #ccc;
+    cursor: pointer;
+    transition: all .2s linear;
+}
+.bd span i:hover {
+    transform: scale(1.08);
+}
+.bd span:last-child {
+    border-right: 0;
+}
+.el-select {
+    float: right;
+}
+#echarts1 {
+    width: 100%;
+    height: 300px;
+}
+.time {
+    float: right;
+    color: #ccc;
+}
+.left-notice {
+    margin-top: 10px;
+    overflow: hidden;
+}
+.left-notice .el-tabs {
+    height: 245px;
+}
+.detail {
+    padding: 20px 0;
+}
+.detail p {
+    font-size: 16px;
+    line-height: 30px;
+}
+.el-tabs {
+    width: 55%;
+}
+.text {
+    font-size: 14px;
+    transition: all .5s linear;
+}
+.text:hover {
+    cursor: pointer;
+    transform: scale(1.03);
+}
+.text:hover span:first-child {
+    color: #409EFF;
+}
+.competition {
+    display: inline-block;
+    cursor: pointer;
+    margin: 20px;
+    width: 260px;
+    transition: all .3s linear;
+}
+.competition:hover {
+    transform: scale(1.03);
+    color: #409EFF;
+}
+.competition_photo {
+    width: 260px;
+    height: 210px;
+    border-radius: 15px;
+    transition: all .3s linear;
+    margin-bottom: 10px;
+}
+.apply {
+    float: right;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    background-color: #34bfa7;
+    color: #fff;
+}
+.apply:hover {
+    background-color: #34bfa7;
+    color: #fff;
+}
+.el-tag {
+    height: 20px;
+    line-height: 20px;
+    border: none;
+    width: auto;
+    padding: 0;
+    margin-right: 5px;
+    font-size: 12px;
+}
+.creator {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 5px;
+}
+.item {
+    margin-bottom: 18px;
+}
+.clearfix:before,
+.clearfix:after {
+    display: table;
+    content: "";
+}
+.clearfix:after {
+    clear: both
+}
+.box-competition,
+.box-appointment {
+    margin: 30px 0;
+}
+.box-card {
+    width: 40%;
+    float: left;
+    margin-left: 40px;
+}
+@media (max-width: 1200px) {
+    .left-notice img {
+        display: none;
+    }
+}
+</style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input v-model="searchForm.title" placeholder="公告标题" clearable>
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getNoticeList">搜索</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="dialogVisible = true" v-if="hasAuth('sys:notice:save')">新增</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:notice:delete')">批量删除</el-button>
+        </el-popconfirm>
+      </el-form-item>
+    </el-form>
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55">
+      </el-table-column>
+      <el-table-column label="公告编号" width="80" prop="id">
+      </el-table-column>
+      <el-table-column prop="title" label="公告标题" width="200">
+      </el-table-column>
+      <el-table-column prop="writer" label="发布者">
+      </el-table-column>
+      <el-table-column prop="status" label="公告状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="success">发布</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">未发布</el-tag>
+          <el-tag size="small" v-else type="info">暂存</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created" width="200" label="发布时间">
+      </el-table-column>
+      <el-table-column prop="updated" width="200" label="修改时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="260px" label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" v-if="hasAuth('sys:notice:update')" @click="editHandle(scope.row.id)">编辑</el-button>
+          <el-divider direction="vertical" v-if="hasAuth('sys:notice:update')"></el-divider>
+          <template>
+            <el-popconfirm title="这是一段内容确定删除吗？" v-if="hasAuth('sys:notice:delete')" @confirm="delHandle(scope.row.id)">
+              <el-button type="text" slot="reference">删除</el-button>
+            </el-popconfirm>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog title="公告" :visible.sync="dialogVisible" top="20px" width="90%" :before-close="handleClose">
+      <el-form :model="editForm" :rules="editFormRules" ref="editForm">
+        <el-form-item label="公告标题" prop="title" label-width="100px">
+          <el-input v-model="editForm.title" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="公告发布者" prop="writer" label-width="100px">
+          <el-input v-model="editForm.writer" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="公告内容" prop="content" label-width="100px">
+          <v-md-editor v-model="editForm.content" height="500px"></v-md-editor>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" label-width="100px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label="0">发布</el-radio>
+            <el-radio :label="1">未发布</el-radio>
+            <el-radio :label="2">暂存</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm('editForm')">取 消</el-button>
+        <el-button type="primary" @click="submitForm('editForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "Notice",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      dialogVisible: false,
+      editForm: {},
+      tableData: [],
+      editFormRules: {
+        title: [
+          { required: true, message: '请输入公告标题', trigger: 'blur' }
+        ],
+        writer: [
+          { required: true, message: '请输入公告发布者', trigger: 'blur' }
+        ],
+        content: [
+          { required: true, message: '请输入公告内容', trigger: 'blur' }
+        ],
+        status: [
+          { required: true, message: '请选择状态', trigger: 'blur' }
+        ]
+      },
+      multipleSelection: [],
+      roleDialogFormVisible: false,
+      defaultProps: {
+        children: 'children',
+        label: 'name'
+      },
+      roleForm: {},
+      roleTreeData: [],
+      treeCheckedKeys: [],
+      checkStrictly: true
+    }
+  },
+  created() {
+    this.getNoticeList();
+  },
+  methods: {
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSelectionChange(val) {
+      console.log("勾选")
+      console.log(val)
+      this.multipleSelection = val;
+      this.delBtlStatus = val.length == 0
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.size = val
+      this.getNoticeList()
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.current = val
+      this.getNoticeList()
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogVisible = false
+      this.editForm = {}
+    },
+    handleClose() {
+      this.resetForm('editForm')
+    },
+    getNoticeList() {
+      this.$axios.get("/sys/notice/list", {
+        params: {
+          title: this.searchForm.title,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          this.tableData[i].created = this.dateFormat(this.tableData[i].created);
+          if (this.tableData[i].updated) {
+            this.tableData[i].updated = this.dateFormat(this.tableData[i].updated);
+          }
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+      })
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          console.log(this.editForm);
+          this.$axios.post('/sys/notice/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getNoticeList()
+                }
+              });
+              this.dialogVisible = false
+            })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    editHandle(id) {
+      this.$axios.get('/sys/notice/info/' + id).then(res => {
+        this.editForm = res.data.data.info
+        this.dialogVisible = true
+      })
+    },
+    delHandle(id) {
+      let ids = []
+      if (id) {
+        ids.push(id)
+      } else {
+        this.multipleSelection.forEach(row => {
+          ids.push(row.id)
+        })
+      }
+      console.log(ids)
+      this.$axios.post("/sys/notice/delete", ids).then(res => {
+        this.$message({
+          showClose: true,
+          message: '恭喜你，操作成功',
+          type: 'success',
+          onClose: () => {
+            this.getNoticeList()
+          }
+        });
+      })
+    }
+  }
+}
+</script>
+<style scoped></style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-button type="primary" @click="dialogVisible = true">新增</el-button>
+      </el-form-item>
+    </el-form>
+    <el-table
+        :data="tableData"
+        style="width: 100%;margin-bottom: 20px;"
+        row-key="id"
+        border
+        stripe
+        default-expand-all
+        :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+      <el-table-column
+          prop="name"
+          label="名称"
+          sortable
+          width="180">
+      </el-table-column>
+      <el-table-column
+          prop="perms"
+          label="权限编码"
+          sortable
+          width="180">
+      </el-table-column>
+      <el-table-column
+          prop="icon"
+          label="图标">
+      </el-table-column>
+      <el-table-column
+          prop="type"
+          label="类型">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.type === 0">目录</el-tag>
+          <el-tag size="small" v-else-if="scope.row.type === 1" type="success">菜单</el-tag>
+          <el-tag size="small" v-else-if="scope.row.type === 2" type="info">按钮</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+          prop="path"
+          label="菜单URL">
+      </el-table-column>
+      <el-table-column
+          prop="component"
+          label="菜单组件">
+      </el-table-column>
+      <el-table-column
+          prop="orderNum"
+          label="排序号">
+      </el-table-column>
+      <el-table-column
+          prop="status"
+          label="状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 1" type="success">正常</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 0" type="danger">禁用</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+          prop="icon"
+          label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" @click="editHandle(scope.row.id)">编辑</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <template>
+            <el-popconfirm title="确定删除该数据吗？" @confirm="delHandle(scope.row.id)">
+              <el-button type="text" slot="reference">删除</el-button>
+            </el-popconfirm>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!--新增对话框-->
+    <el-dialog
+        title="提示"
+        :visible.sync="dialogVisible"
+        width="600px"
+        :before-close="handleClose">
+      <el-form :model="editForm" :rules="editFormRules" ref="editForm" label-width="100px" class="demo-editForm">
+        <el-form-item label="上级菜单" prop="parentId">
+          <el-select v-model="editForm.parentId" placeholder="请选择上级菜单">
+            <template v-for="item in tableData">
+              <el-option :label="item.name" :value="item.id"></el-option>
+              <template v-for="child in item.children">
+                <el-option :label="child.name" :value="child.id">
+                  <span>{{ "- " + child.name }}</span>
+                </el-option>
+              </template>
+            </template>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="菜单名称" prop="name" label-width="100px">
+          <el-input v-model="editForm.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="权限编码" prop="perms" label-width="100px">
+          <el-input v-model="editForm.perms" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="图标" prop="icon" label-width="100px">
+          <el-input v-model="editForm.icon" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="菜单URL" prop="path" label-width="100px">
+          <el-input v-model="editForm.path" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="菜单组件" prop="component" label-width="100px">
+          <el-input v-model="editForm.component" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="type" label-width="100px">
+          <el-radio-group v-model="editForm.type">
+            <el-radio :label=0>目录</el-radio>
+            <el-radio :label=1>菜单</el-radio>
+            <el-radio :label=2>按钮</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" label-width="100px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label=0>禁用</el-radio>
+            <el-radio :label=1>正常</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="排序号" prop="orderNum" label-width="100px">
+          <el-input-number v-model="editForm.orderNum" :min="1" label="排序号">1</el-input-number>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitForm('editForm')">提交</el-button>
+          <el-button @click="resetForm('editForm')">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "Menu",
+  data(){
+    return{
+      dialogVisible: false,
+      editForm: {
+      },
+      editFormRules: {
+        parentId: [
+          {required: true, message: '请选择上级菜单', trigger: 'blur'}
+        ],
+        name: [
+          {required: true, message: '请输入名称', trigger: 'blur'}
+        ],
+        perms: [
+          {required: true, message: '请输入权限编码', trigger: 'blur'}
+        ],
+        type: [
+          {required: true, message: '请选择状态', trigger: 'blur'}
+        ],
+        orderNum: [
+          {required: true, message: '请填入排序号', trigger: 'blur'}
+        ],
+        status: [
+          {required: true, message: '请选择状态', trigger: 'blur'}
+        ]
+      },
+      tableData: []
+    }
+  },
+  created() {
+    this.getMenuTree();
+  },
+  methods: {
+    handleClose(){
+      this.resetForm('editForm')
+    },
+    getMenuTree(){
+      this.$axios.get("/sys/menu/list").then(res => {
+        this.tableData = res.data.data.menuList;
+      })
+    },
+    submitForm(formName){
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.$axios.post('/sys/menu/' + (this.editForm.id ? 'update' : 'save'),this.editForm).then(res => {
+            this.$message({
+              showClose: true,
+              message: '操作成功',
+              type: 'success',
+              onClose: () => {
+                this.getMenuTree();
+              }
+            });
+            this.dialogVisible = false;
+            this.editForm = {};
+          })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    editHandle(id){
+      this.$axios.get('/sys/menu/info/' + id).then(res => {
+        this.editForm = res.data.data.menuInfo;
+        this.dialogVisible = true;
+      })
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogVisible = false;
+      this.editForm = {};
+    },
+    delHandle(id){
+      this.$axios.post("/sys/menu/delete/" + id).then(res => {
+        this.$message({
+          showClose: true,
+          message: '操作成功',
+          type: 'success',
+          onClose: () => {
+            this.getMenuTree();
+          }
+        });
+      })
+    }
+  }
+}
+</script>
+<style scoped>
+</style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input v-model="searchForm.competitionName" placeholder="赛事名称" clearable>
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getCompetitionList">搜索</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="dialogVisible = true" v-if="hasAuth('sys:competition:save')">新增</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:competition:delete')">批量删除</el-button>
+        </el-popconfirm>
+      </el-form-item>
+    </el-form>
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55">
+      </el-table-column>
+      <el-table-column label="赛事名称" width="120" prop="name">
+      </el-table-column>
+      <el-table-column label="赛事图片" width="120" prop="url">
+        <template slot-scope="scope">
+          <el-image v-if="scope.row.url" :src="scope.row.url"></el-image>
+        </template>
+      </el-table-column>
+      <el-table-column prop="username" label="赛事创建人">
+      </el-table-column>
+      <el-table-column prop="place" label="赛事地点">
+      </el-table-column>
+      <el-table-column prop="starttime" label="赛事开始时间"></el-table-column>
+      <el-table-column prop="endtime" label="赛事结束时间"></el-table-column>
+      <el-table-column prop="status" label="赛事状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="success">发布</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 1" type="danger">未发布</el-tag>
+          <el-tag size="small" v-else type="info">暂存</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created" width="200" label="创建时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="250" label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" v-if="hasAuth('sys:competition:update')"
+            @click="editHandle(scope.row.id)">编辑</el-button>
+          <el-divider direction="vertical" v-if="hasAuth('sys:competition:update')"></el-divider>
+          <template>
+            <el-popconfirm title="这是一段内容确定删除吗？" v-if="hasAuth('sys:competition:delete')"
+              @confirm="delHandle(scope.row.id)">
+              <el-button type="text" slot="reference">删除</el-button>
+            </el-popconfirm>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination style="margin-top: 10px;" @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+      <el-form :model="editForm" :rules="editFormRules" ref="editForm">
+        <el-form-item label="赛事名称" prop="name" label-width="120px">
+          <el-input v-model="editForm.name" autocomplete="off" style="width: 220px;"></el-input>
+        </el-form-item>
+        <el-form-item label="赛事地点" prop="place" label-width="120px">
+          <el-select v-model="editForm.place" placeholder="请选择赛事地点" style="width: 220px;">
+            <el-option
+              v-for="item in placeList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="赛事起止时间" label-width="120px">
+          <el-date-picker v-model="editForm.gameStartTime" type="datetime" placeholder="选择赛事开始时间"
+            :picker-options="pickerOptions" style="width: 200px;margin-right: 5px;"></el-date-picker>
+            <el-date-picker v-model="editForm.gameEndTime" type="datetime" placeholder="选择赛事结束时间"
+            :picker-options="pickerOptions" style="width: 200px;"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="场地租用时间" label-width="120px">
+          <el-date-picker v-model="editForm.placeStartTime" type="datetime" placeholder="选择租用开始时间"
+            :picker-options="pickerOptions" style="width: 200px;margin-right: 5px;"></el-date-picker>
+            <el-date-picker v-model="editForm.placeEndTime" type="datetime" placeholder="选择租用结束时间"
+            :picker-options="pickerOptions" style="width: 200px;"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="租用器材" label-width="120px">
+          <el-select v-model="editForm.equipment" multiple placeholder="请选择要租用的器材" style="width: 220px;">
+            <el-option
+              v-for="item in equipmentList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="赛事介绍" prop="description" label-width="120px">
+          <el-input type="textarea" :rows="7" placeholder="请输入赛事介绍" v-model="editForm.description"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" label-width="120px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label="0">发布</el-radio>
+            <el-radio :label="1">未发布</el-radio>
+            <el-radio :label="2">暂存</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="赛事图片" label-width="120px">
+          <el-upload class="avatar-uploader" :show-file-list="false" action="action" :http-request="upload"
+            :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+            <el-image v-if="this.imgUrl" :src="this.imgUrl" class="avatar"></el-image>
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm('editForm')">取 消</el-button>
+        <el-button type="primary" @click="submitForm('editForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "Competition",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      dialogVisible: false,
+      editForm: {},
+      tableData: [],
+      editFormRules: {
+        name: [
+          { required: true, message: '请输入赛事名称', trigger: 'blur' }
+        ],
+        place: [
+          { required: true, message: '请输入赛事地点', trigger: 'blur' }
+        ],
+        status: [
+          { required: true, message: '请选择状态', trigger: 'blur' }
+        ],
+        description: [
+          { required: true, message: '请输入赛事介绍', trigger: 'blur' }
+        ]
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() < Date.now();
+        }
+      },
+      multipleSelection: [],
+      imgUrl: '',
+      placeList:[],
+      equipmentList:[],
+    }
+  },
+  created() {
+    this.getCompetitionList();
+    this.getPlaceList();
+    this.getEquipmentList();
+  },
+  computed: {
+    uploadUrl() {
+      return this.$axios.defaults.baseURL + '/upload/img'
+    }
+  },
+  watch: {
+    multipleSelection: function (val) {
+      this.delBtlStatus = val.length == 0
+    }
+  },
+  methods: {
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    upload(param) {
+      const formData = new FormData()
+      formData.append('file', param.file)
+      this.$axios.post('/upload/img', formData, { headers: { "Content-Type": "multipart/form-data" } }).then(res => {
+        this.imgUrl = res.data.data.fileUrl;
+      })
+    },
+    handleAvatarSuccess(res, file) {
+      console.log(res);
+      console.log(file);
+    },
+    beforeAvatarUpload(file) {
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+      return isLt2M;
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+      this.delBtlStatus = val.length == 0
+    },
+    handleSizeChange(val) {
+      this.size = val
+      this.getCompetitionList()
+    },
+    handleCurrentChange(val) {
+      this.current = val
+      this.getCompetitionList()
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogVisible = false
+      this.imgUrl = ''
+      this.editForm = {}
+    },
+    handleClose() {
+      this.imgUrl = '';
+      this.resetForm('editForm')
+    },
+    getCompetitionList() {
+      this.$axios.get("/sys/competition/list", {
+        params: {
+          competitionName: this.searchForm.competitionName,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          this.tableData[i].starttime = this.dateFormat(this.tableData[i].starttime);
+          this.tableData[i].endtime = this.dateFormat(this.tableData[i].endtime);
+          this.tableData[i].created = this.dateFormat(this.tableData[i].created);
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+      })
+    },
+    submitForm(formName) {
+      if (new Date(this.editForm.starttime) >= new Date(this.editForm.endtime)) {
+        this.$message({
+          showClose: true,
+          message: '竞赛时间不规范',
+          type: 'error'
+        });
+        return;
+      }
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.editForm.userid = sessionStorage.getItem("userId");
+          this.editForm.url = this.imgUrl;
+          this.$axios.post('/sys/competition/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getCompetitionList()
+                }
+              });
+              this.dialogVisible = false
+              this.imgUrl = '';
+              this.editForm = {}
+            })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    editHandle(id) {
+      this.$axios.get('/sys/competition/info/' + id).then(res => {
+        console.log(res.data.data.info)
+        this.editForm = res.data.data.info
+        this.dialogVisible = true
+        this.imgUrl = this.editForm.url
+      })
+    },
+    delHandle(id) {
+      let ids = []
+      if (id) {
+        ids.push(id)
+      } else {
+        this.multipleSelection.forEach(row => {
+          ids.push(row.id)
+        })
+      }
+      this.$axios.post("/sys/competition/delete", ids).then(res => {
+        let mes = res.success ? 'success' : 'error'
+        this.$message({
+          showClose: true,
+          message: res.message,
+          type: mes,
+          onClose: () => {
+            this.getCompetitionList()
+          }
+        });
+      })
+    },
+    getPlaceList() {
+      this.$axios.get("/sys/place/list", {
+        params: {
+          current: 1,
+          size: 10
+        }
+      }).then(res => {
+        const r = res.data.data.pageData.records
+        for (let i = 0; i < r.length; i++) {
+          this.placeList[i] = {
+            label: r[i].place,
+            value: r[i].id
+          }
+        }
+      })
+    },
+    getEquipmentList() {
+      this.$axios.get("/equipment/list", {
+        params: {
+          current: 1,
+          size: 10
+        }
+      }).then(res => {
+        console.log(res.data.data.pageData.records)
+        const r = res.data.data.pageData.records
+        for (let i = 0; i < r.length; i++) {
+          this.equipmentList[i] = {
+            label: r[i].name,
+            value: r[i].id
+          }
+        }
+      })
+    },
+  }
+}
+</script>
+<style scoped>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409EFF;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+  border: 1px dashed #d9d9d9;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input
+            v-model="searchForm.username"
+            placeholder="租借用户名"
+            clearable
+        >
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getBorrowList">搜索</el-button>
+      </el-form-item>
+    </el-form>
+    <el-table
+        ref="multipleTable"
+        :data="tableData"
+        tooltip-effect="dark"
+        style="width: 100%"
+        border
+        stripe>
+      <el-table-column
+          label="租借用户名"
+          width="110"
+          prop="username">
+      </el-table-column>
+      <el-table-column
+          prop="equipmentName"
+          label="租借器材"
+          width="110">
+      </el-table-column>
+      <el-table-column
+          prop="number"
+          label="数量"
+          width="110">
+      </el-table-column>
+      <el-table-column
+          prop="totalmoney"
+          label="租用总金额"
+          width="110">
+      </el-table-column>
+      <el-table-column
+          prop="status"
+          label="租借状态"
+          width="220">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="info">待审批</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 1" type="success">通过</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 2" type="danger">驳回</el-tag>
+          <el-tag size="small" v-else-if="scope.row.status === 3">归还</el-tag>
+          <el-tag size="small" v-else type="success">归还成功</el-tag>
+          <el-tag size="small" v-if="scope.row.repairsStatus === 0">待修复</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+          prop="starttime"
+          width="200"
+          label="租用开始时间"
+      >
+      </el-table-column>
+      <el-table-column
+          prop="endtime"
+          width="200"
+          label="租用结束时间"
+      >
+      </el-table-column>
+      <el-table-column
+          prop="icon"
+          label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" v-if="hasAuth('sys:borrow:approve') && scope.row.status === 0" @click="editHandle(scope.row.id)">审批</el-button>
+          <el-button type="text" v-if="hasAuth('sys:borrow:approve') && scope.row.status === 3" @click="back(scope.row.id)">回收</el-button>
+          <el-divider v-if="scope.row.status === 3" direction="vertical"></el-divider>
+          <el-button type="text" v-if="hasAuth('sys:borrow:approve') && scope.row.status === 3" @click="bad(scope.row.id,scope.row.userid)">损坏</el-button>
+          <el-divider v-if="scope.row.repairsStatus === 0 && scope.row.status === 3" direction="vertical"></el-divider>
+          <el-button type="text" v-if="hasAuth('sys:borrow:approve') && scope.row.repairsStatus === 0" @click="repair(scope.row.id)">修复</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-dialog
+        title="器材审批"
+        :visible.sync="dialogVisible"
+        width="600px"
+        :before-close="handleClose">
+      <el-form :model="editForm">
+        <el-form-item label="租用数量" label-width="100px">
+          <el-input-number v-model="editForm.number" disabled="true"></el-input-number>
+        </el-form-item>
+        <el-form-item label="租用开始时间" label-width="100px">
+          <el-date-picker v-model="editForm.starttime" type="date" disabled="true"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="租用结束时间" label-width="100px">
+          <el-date-picker v-model="editForm.endtime" type="date" disabled="true"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="操作" label-width="100px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label="1">通过</el-radio>
+            <el-radio :label="2">驳回</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm()">取 消</el-button>
+        <el-button type="primary" @click="submitForm()">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog
+        title="损坏"
+        :visible.sync="badFlag"
+        width="600px"
+        :before-close="handleClose">
+      <el-form :model="badForm">
+        <el-form-item label="赔偿金额" label-width="100px">
+          <el-input v-model="badForm.price" ></el-input>
+        </el-form-item>
+        <el-form-item label="赔偿原因" label-width="100px">
+          <el-input v-model="badForm.reason"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm()">取 消</el-button>
+        <el-button type="primary" @click="submitBad()">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-pagination style="margin-top: 10px;"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        layout="total, sizes, prev, pager, next, jumper"
+        :page-sizes="[10, 20, 50, 100]"
+        :current-page="current"
+        :page-size="size"
+        :total="total">
+    </el-pagination>
+  </div>
+</template>
+<script>
+export default {
+  name: "Borrow",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      dialogVisible: false,
+      editForm: {},
+      tableData: [],
+      badFlag: false,
+      badForm: {
+        reason: '损坏器材'
+      }
+    }
+  },
+  created() {
+    this.getBorrowList();
+  },
+  methods: {
+    repair(id){
+      this.$confirm('此操作已修复该器材, 是否继续?', '修复', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/sys/borrow/repair/" + id).then(res => {
+          this.$message({
+            type: 'success',
+            message: '修复成功!',
+            onClose:() => {
+              this.getBorrowList()
+            }
+          });
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消修复'
+        });
+      });
+    },
+    bad(id,userId){
+      this.badForm.borrowid = id;
+      this.badForm.userid = userId;
+      this.badFlag = true;
+    },
+    submitBad(){
+      this.$axios.post("/sys/compensate/save",this.badForm).then(res => {
+        this.$message({
+          showClose: true,
+          message: '恭喜你，操作成功',
+          type: 'success',
+          onClose:() => {
+            this.getBorrowList()
+          }
+        });
+        this.badFlag = false
+      })
+    },
+    back(id){
+      this.$confirm('此操作将回收该器材, 是否继续?', '回收', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$axios.post("/sys/borrow/back/" + id).then(res => {
+          this.$message({
+            type: 'success',
+            message: '回收成功!',
+            onClose:() => {
+              this.getBorrowList()
+            }
+          });
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消回收'
+        });
+      });
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+          date.getMonth() + 1 < 10
+              ? "0" + (date.getMonth() + 1)
+              : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.size = val
+      this.getBorrowList()
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.current = val
+      this.getBorrowList()
+    },
+    resetForm() {
+      this.dialogVisible = false;
+      this.badFlag = false;
+      this.editForm = {}
+      this.badForm = {}
+      this.badForm.reason = '损坏器材'
+    },
+    handleClose() {
+      this.resetForm();
+    },
+    getBorrowList() {
+      this.$axios.get("/sys/borrow/list", {
+        params: {
+          username: this.searchForm.username,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          this.tableData[i].starttime = this.dateFormat(this.tableData[i].starttime);
+          this.tableData[i].endtime = this.dateFormat(this.tableData[i].endtime);
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+      })
+    },
+    submitForm() {
+      if (this.editForm.status === 0){
+        this.$message({
+          showClose: true,
+          message: '请选择审批操作',
+          type: 'error'
+        });
+        return;
+      }
+      this.$axios.post('/sys/borrow/passOrNotPass', this.editForm)
+          .then(res => {
+            this.$message({
+              showClose: true,
+              message: '恭喜你，操作成功',
+              type: 'success',
+              onClose:() => {
+                this.getBorrowList()
+              }
+            });
+            this.dialogVisible = false
+          })
+    },
+    editHandle(id) {
+      this.$axios.get('/sys/borrow/info/' + id).then(res => {
+        this.editForm = res.data.data.info
+        this.dialogVisible = true
+      })
+    },
+  }
+}
+</script>
+<style scoped>
+</style>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input
+            v-model="searchForm.username"
+            placeholder="预约用户名"
+            clearable>
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getAppointmentList">搜索</el-button>
+      </el-form-item>
+    </el-form>
+    <el-table
+        ref="multipleTable"
+        :data="tableData"
+        tooltip-effect="dark"
+        style="width: 100%"
+        border
+        stripe>
+      <el-table-column
+          label="预约编号"
+          width="80"
+          prop="id">
+      </el-table-column>
+      <el-table-column
+          prop="username"
+          label="预约用户名"
+          width="150">
+      </el-table-column>
+      <el-table-column
+          prop="placeName"
+          label="预约场地"
+          width="150">
+      </el-table-column>
+      <el-table-column
+          prop="orderdate"
+          label="预约日期">
+      </el-table-column>
+      <el-table-column
+          prop="orderstart"
+          label="预约开始时间(点)">
+      </el-table-column>
+      <el-table-column
+          prop="orderend"
+          label="预约结束时间(点)">
+      </el-table-column>
+      <el-table-column
+          prop="price"
+          label="预约订单价格">
+      </el-table-column>
+      <el-table-column
+          prop="status"
+          label="预约状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="success">已预约</el-tag>
+          <el-tag size="small" v-else type="danger">取消预约</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+          prop="created"
+          width="200"
+          label="预约时间">
+      </el-table-column>
+    </el-table>
+    <el-pagination style="margin-top: 10px;"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        layout="total, sizes, prev, pager, next, jumper"
+        :page-sizes="[10, 20, 50, 100]"
+        :current-page="current"
+        :page-size="size"
+        :total="total">
+    </el-pagination>
+  </div>
+</template>
+<script>
+export default {
+  name: "Appointment",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      tableData: []
+    }
+  },
+  created() {
+    this.getAppointmentList();
+  },
+  methods: {
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+          date.getMonth() + 1 < 10
+              ? "0" + (date.getMonth() + 1)
+              : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.size = val
+      this.getAppointmentList()
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.current = val
+      this.getAppointmentList()
+    },
+    getAppointmentList() {
+      this.$axios.get("/sys/appointment/list", {
+        params: {
+          username: this.searchForm.username,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          this.tableData[i].orderdate = this.dateFormat(this.tableData[i].orderdate);
+          this.tableData[i].created = this.dateFormat(this.tableData[i].created);
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+      })
+    }
+  }
+}
+</script>
+<style scoped>
+</style>
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <title>GDOU体育管理系统</title>
+</head>
+<body>
+  <noscript>
+    <strong>We're sorry but GDOU体育管理系统 doesn't work properly without JavaScript enabled.
+        Please enable it to continue.</strong>
+  </noscript>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+</body>
+</html>
+<template>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-input v-model="searchForm.name" placeholder="器材名称" clearable>
+        </el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getEquipmentList">搜索</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="dialogVisible = true" v-if="hasAuth('sys:equipment:save')">新增</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-popconfirm title="这是确定批量删除吗？" @confirm="delHandle(null)">
+          <el-button type="danger" slot="reference" :disabled="delBtlStatus"
+            v-if="hasAuth('sys:equipment:delete')">批量删除</el-button>
+        </el-popconfirm>
+      </el-form-item>
+    </el-form>
+    <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 100%" border stripe
+      @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55">
+      </el-table-column>
+      <el-table-column label="器材id" width="120" prop="id">
+      </el-table-column>
+      <el-table-column label="器材名称" width="120" prop="name">
+      </el-table-column>
+      <el-table-column prop="classification" label="器材类别" width="100">
+      </el-table-column>
+      <el-table-column prop="total" label="器材总数">
+      </el-table-column>
+      <el-table-column prop="money" label="器材金额">
+      </el-table-column>
+      <el-table-column prop="status" label="器材状态">
+        <template slot-scope="scope">
+          <el-tag size="small" v-if="scope.row.status === 0" type="success">可租用</el-tag>
+          <el-tag size="small" v-else type="danger">不可租用</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="created" width="200" label="创建时间">
+      </el-table-column>
+      <el-table-column prop="icon" width="260px" label="操作">
+        <template slot-scope="scope">
+          <el-button type="text" v-if="hasAuth('sys:equipment:update')" @click="editHandle(scope.row.id)">编辑</el-button>
+          <el-divider direction="vertical" v-if="hasAuth('sys:equipment:update')"></el-divider>
+          <template>
+            <el-popconfirm title="这是一段内容确定删除吗？" v-if="hasAuth('sys:equipment:delete')"
+              @confirm="delHandle(scope.row.id)">
+              <el-button type="text" slot="reference">删除</el-button>
+            </el-popconfirm>
+          </template>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      layout="total, sizes, prev, pager, next, jumper" :page-sizes="[10, 20, 50, 100]" :current-page="current"
+      :page-size="size" :total="total">
+    </el-pagination>
+    <!--新增对话框-->
+    <el-dialog title="提示" :visible.sync="dialogVisible" width="600px" :before-close="handleClose">
+      <el-form :model="editForm" :rules="editFormRules" ref="editForm">
+        <el-form-item label="器材名称" prop="name" label-width="100px">
+          <el-input v-model="editForm.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="器材类别" prop="classification" label-width="100px">
+          <el-input v-model="editForm.classification" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="器材总数" prop="total" label-width="100px">
+          <el-input v-model="editForm.total" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="器材金额" prop="money" label-width="100px">
+          <el-input v-model="editForm.money" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="器材状态" prop="status" label-width="100px">
+          <el-radio-group v-model="editForm.status">
+            <el-radio :label="0">可租用</el-radio>
+            <el-radio :label="1">不可租用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="resetForm('editForm')">取 消</el-button>
+        <el-button type="primary" @click="submitForm('editForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+export default {
+  name: "List",
+  data() {
+    return {
+      searchForm: {},
+      delBtlStatus: true,
+      total: 0,
+      size: 10,
+      current: 1,
+      dialogVisible: false,
+      editForm: {},
+      tableData: [],
+      editFormRules: {
+        name: [
+          { required: true, message: '请输入器材名称', trigger: 'blur' }
+        ],
+        classification: [
+          { required: true, message: '请输入器材类别', trigger: 'blur' }
+        ],
+        total: [
+          { required: true, message: '请输入器材总数', trigger: 'blur' }
+        ],
+        money: [
+          { required: true, message: '请输入器材金额', trigger: 'blur' }
+        ],
+        status: [
+          { required: true, message: '请选择器材状态', trigger: 'blur' }
+        ]
+      },
+      multipleSelection: [],
+      roleDialogFormVisible: false,
+      defaultProps: {
+        children: 'children',
+        label: 'name'
+      }
+    }
+  },
+  created() {
+    this.getEquipmentList();
+  },
+  methods: {
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    dateFormat(time) {
+      let date = new Date(time);
+      let year = date.getFullYear();
+      let month =
+        date.getMonth() + 1 < 10
+          ? "0" + (date.getMonth() + 1)
+          : date.getMonth() + 1;
+      let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      return (year + "-" + month + "-" + day);
+    },
+    handleSelectionChange(val) {
+      console.log("勾选")
+      console.log(val)
+      this.multipleSelection = val;
+      this.delBtlStatus = val.length == 0
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.size = val
+      this.getEquipmentList()
+    },
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.current = val
+      this.getEquipmentList()
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogVisible = false
+      this.editForm = {}
+    },
+    handleClose() {
+      this.resetForm('editForm')
+    },
+    getEquipmentList() {
+      this.$axios.get("/sys/equipment/list", {
+        params: {
+          name: this.searchForm.name,
+          current: this.current,
+          size: this.size
+        }
+      }).then(res => {
+        this.tableData = res.data.data.pageData.records
+        for (let i = 0; i < this.tableData.length; i++) {
+          this.tableData[i].created = this.dateFormat(this.tableData[i].created);
+        }
+        this.size = res.data.data.pageData.size
+        this.current = res.data.data.pageData.current
+        this.total = res.data.data.pageData.total
+      })
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.$axios.post('/sys/equipment/' + (this.editForm.id ? 'update' : 'save'), this.editForm)
+            .then(res => {
+              this.$message({
+                showClose: true,
+                message: '恭喜你，操作成功',
+                type: 'success',
+                onClose: () => {
+                  this.getEquipmentList()
+                }
+              });
+              this.dialogVisible = false
+            })
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    editHandle(id) {
+      this.$axios.get('/sys/equipment/info/' + id).then(res => {
+        this.editForm = res.data.data.info
+        this.dialogVisible = true
+      })
+    },
+    delHandle(id) {
+      let ids = []
+      if (id) {
+        ids.push(id)
+      } else {
+        this.multipleSelection.forEach(row => {
+          ids.push(row.id)
+        })
+      }
+      console.log(ids)
+      this.$axios.post("/sys/equipment/delete", ids).then(res => {
+        let mes = res.success ? 'success' : 'error'
+        this.$message({
+          showClose: true,
+          message: res.message,
+          type: mes,
+          onClose: () => {
+            this.getEquipmentList()
+          }
+        });
+      })
+    }
+  }
+}
+</script>
+<style scoped></style>
+import Vue from "vue";
+Vue.mixin({
+    methods: {
+        hasAuth(perm){
+            let authority = this.$store.state.menus.permList;
+            return authority.indexOf(perm) > -1;
+        }
+    }
+})
+export default {
+    ws: {},
+    setWs: function(newWs) {
+        this.ws = newWs
+    }
+}
+import Vue from "vue";
+import Vuex from "vuex";
+import menus from "./modules/menus";
+Vue.use(Vuex);
+const actions = {};
+const mutations = {
+  menuCollapse(state) {
+    state.isCollapse = !state.isCollapse;
+  },
+  SET_TOKEN: (state, token) => {
+    state.token = token;
+    window.sessionStorage.setItem("token", token);
+  },
+};
+const state = {
+  isCollapse: false,
+  token: "",
+};
+const modules = {
+  menus,
+};
+export default new Vuex.Store({
+  actions,
+  mutations,
+  state,
+  modules,
+});
+<template>
+    <div class="layout">
+        <el-container>
+            <el-aside>
+                <Aside />
+            </el-aside>
+            <el-container>
+                <el-header>
+                    <Header />
+                </el-header>
+                <el-main>
+                    <Tabs />
+                    <router-view></router-view>
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+</template>
+<script>
+import Aside from '../components/Aside.vue';
+import Header from '../components/Header.vue';
+import Tabs from '../components/Tabs.vue';
+export default {
+    name: 'layout',
+    components: { Aside, Header, Tabs },
+    data() {
+        return {
+            socket: null,
+            userId: sessionStorage.getItem("userId")
+        }
+    },
+    created() {
+        if (this.userId != null) {
+            this.initWebSocket();
+        }
+    },
+    methods: {
+        initWebSocket() {
+            let that = this;
+            if ("WebSocket" in window) {
+                console.log("您的浏览器支持 WebSocket!");
+                let socketUrl = "http:
+                socketUrl = socketUrl.replace("https", "ws").replace("http", "ws");
+                that.ws = new WebSocket(socketUrl);
+                that.$globalWebSocket.setWs(that.ws);
+                that.ws.onopen = function () {
+                    console.log('webSocket connect successful')
+                };
+                that.ws.onclose = function () {
+                    console.log("webSocket connect closed");
+                    setTimeout(() => {
+                        that.initWebSocket();
+                    }, 2000);
+                };
+            } else {
+                console.log("您的浏览器不支持 WebSocket!");
+            }
+        },
+    },
+    watch: {
+        $route(to, from) {
+            if (to.path != '/login') {
+                let obj = {
+                    name: to.name,
+                    title: to.meta.title
+                }
+                this.$store.commit("addTab", obj);
+            }
+        }
+    }
+}
+</script>
+<style scoped>
+.el-container {
+    min-height: 400px;
+}
+.el-aside {
+    width: auto !important;
+    height: 100vh;
+    background: white;
+}
+.el-header {
+    padding: 0 0;
+}
+.el-main {
+    height: 20vh;
+}
+</style>
+<template>
+    <div class="Aside">
+        <el-row class="tac">
+            <el-col :span="12">
+                <el-menu :default-active="this.$store.state.menus.editableTabsValue" class="el-menu-vertical-demo"
+                    active-text-color="#fff" :collapse="isCollapse">
+                    <div class="userInfo">
+                        <div class="userHeader">
+                            <div :class="{ userAvatar: !isCollapse }">
+                                <el-avatar :size="55" shape="circle" :src="userInfo.avatar"></el-avatar>
+                            </div>
+                        </div>
+                    </div>
+                    <router-link to="/index">
+                        <el-menu-item index="index" @click="selectMenu({ name: 'index', title: '首页' })">
+                            <i class="el-icon-s-home"></i>
+                            <template slot="title">
+                                <span slot="title">首页</span>
+                            </template>
+                        </el-menu-item>
+                    </router-link>
+                    <router-link to="/user/equipment">
+                        <el-menu-item index="equipment" @click="selectMenu({ name: 'equipment', title: '器材列表' })">
+                            <i class="el-icon-basketball"></i>
+                            <template slot="title">
+                                <span slot="title">器材列表</span>
+                            </template>
+                        </el-menu-item>
+                    </router-link>
+                    <router-link to="/user/competition">
+                        <el-menu-item index="competition" @click="selectMenu({ name: 'competition', title: '竞赛列表' })">
+                            <i class="el-icon-football"></i>
+                            <template slot="title">
+                                <span slot="title">竞赛列表</span>
+                            </template>
+                        </el-menu-item>
+                    </router-link>
+                    <router-link to="/notice/noticeList">
+                        <el-menu-item index="noticeList" @click="selectMenu({ name: 'noticeList', title: '公告列表' })">
+                            <i class="el-icon-message-solid"></i>
+                            <template slot="title">
+                                <span slot="title">公告列表</span>
+                            </template>
+                        </el-menu-item>
+                    </router-link>
+                    <el-submenu :index="menu.name" v-for="(menu, index) in menuList" :key="index">
+                        <template slot="title">
+                            <i :class="menu.icon"></i>
+                            <span class="title">{{ menu.title }}</span>
+                        </template>
+                        <router-link :to="item.path" v-for="(item, index) in menu.children" :key="index">
+                            <el-menu-item :index="item.name" @click="selectMenu(item)">
+                                <template slot="title">
+                                    <i :class="item.icon"></i>
+                                    <span slot="title">{{ item.title }}</span>
+                                </template>
+                            </el-menu-item>
+                        </router-link>
+                    </el-submenu>
+                </el-menu>
+            </el-col>
+        </el-row>
+    </div>
+</template>
+<script>
+export default {
+    name: "Aside",
+    data() {
+        return {
+            userInfo: {
+                id: "",
+                username: "",
+                avatar: "",
+            },
+        };
+    },
+    mounted() {
+        this.getUserInfo()
+    },
+    computed: {
+        isCollapse() {
+            return this.$store.state.isCollapse;
+        },
+        menuList: {
+            get() {
+                return this.$store.state.menus.menuList
+            }
+        }
+    },
+    methods: {
+        selectMenu(item) {
+            this.$store.commit("addTab", item);
+        },
+        getUserInfo() {
+            this.userInfo.username = window.sessionStorage.getItem('username')
+            this.userInfo.avatar = window.sessionStorage.getItem('avatar')
+        },
+    },
+};
+</script>
+<style scoped>
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    width: 100%;
+}
+.userHeader {
+    margin: 0 auto;
+}
+.username p {
+    text-align: center;
+}
+.userName {
+    display: none;
+}
+.el-menu-vertical-demo:not(.el-menu--collapse) {
+    width: 200px;
+    min-height: 400px;
+}
+.el-menu-vertical-demo:not(.el-menu--collapse) {
+    width: 200px;
+    min-height: 400px;
+}
+.el-menu-item.is-active {
+    color: #fff !important;
+    font-size: 15px;
+    font-weight: bold;
+    background-color: #2661ef !important;
+    border-radius: 2px;
+    box-sizing: border-box;
+    margin-left: 2px;
+}
+.el-menu-item:hover i {
+    color: #409EFF !important;
+}
+.el-menu-item:hover {
+    color: #409EFF !important;
+    transition: 0.4s linear;
+    margin-left: 2px;
+}
+</style>
+<template>
+    <div class="Header">
+        <el-row type="flex" justify="space-between" align="middle">
+            <el-col :span="6" type="flex">
+                <div class="toggle-button" @click="changeCollapse()">
+                    <i v-if="isCollapse" class="el-icon-s-unfold"></i>
+                    <i v-if="!isCollapse" class="el-icon-s-fold"></i>
+                </div>
+            </el-col>
+            <el-col :span="6" style="display: flex;align-items: center;">
+                <el-avatar shape="circle" :src="logo"></el-avatar>
+                <p class="system-name">广东海洋大学体育管理系统</p>
+            </el-col>
+            <el-col :span="6" style="display: flex;justify-content: end;align-items: center;margin-right: 20px;">
+                <router-link to='/user/order'>
+                    <span class="order">租用订单</span>
+                </router-link>
+                <el-popover popper-class="popoverStyle" placement="left-end" :width="300" trigger="click">
+                    <div class="notice_item"
+                        v-for="notice in (this.compensateList.length > 0 ? this.compensateList : this.borrowList)"
+                        :key="notice.id">
+                        <div v-if="notice.equipmentid">
+                            <span class="info">
+                                {{ '一条来自 ' + notice.username + ' 的器材申请，等待您的审批！！！ ' }}
+                            </span>
+                            <span>{{ '申请时间： ' + notice.created }}</span>
+                            <router-link to='/sys/Borrow'>
+                                <span class="go-approve">去审批>></span>
+                            </router-link>
+                        </div>
+                        <div v-if="notice.borrowid">
+                            <span class="info">
+                                {{ '您需要支付一笔器材赔偿，赔偿原因：' + notice.reason + ',赔偿金额: ' + notice.price + '元，请尽快缴纳，否则无法租用器材'
+                                }}
+                            </span>
+                            <span>{{ '时间： ' + notice.created }}</span>
+                            <span class="go-approve" @click="pay(notice)">去支付>></span>
+                        </div>
+                    </div>
+                    <el-button slot="reference" class="item">
+                        <el-badge :value="this.num" :max="99">
+                            <i class="el-icon-message-solid" style="width: 25px;"></i>
+                        </el-badge>
+                    </el-button>
+                </el-popover>
+                <div class="fullScreen" @click="toggleFullscreen">
+                    <el-tooltip class="item" effect="dark" :content="isFull ? '退出全屏' : '全屏'" placement="bottom">
+                        <i :class="isFull ? 'el-icon-aim' : 'el-icon-full-screen'"></i>
+                    </el-tooltip>
+                </div>
+                <el-dropdown>
+                    <span class="el-dropdown-link" style="color: #fff; cursor: pointer">
+                        {{ userInfo.username }}<i class="el-icon-arrow-down el-icon--right"></i>
+                    </span>
+                    <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item>
+                            <router-link to="/userCenter">个人中心</router-link>
+                        </el-dropdown-item>
+                        <el-dropdown-item @click.native="logout()">退出系统</el-dropdown-item>
+                    </el-dropdown-menu>
+                </el-dropdown>
+            </el-col>
+        </el-row>
+    </div>
+</template>
+<script>
+import screenfull from "screenfull";
+export default {
+    name: 'Header',
+    data() {
+        return {
+            logo: require("@/assets/logo.png"),
+            borrowList: [],
+            compensateList: [],
+            num: 0,
+            userInfo: {
+                id: "",
+                username: ''
+            },
+            isFull: false,
+        };
+    },
+    created() {
+        this.getUserInfo()
+        this.getBorrowNum();
+    },
+    mounted() {
+        this.handleMsg();
+        this.open()
+    },
+    computed: {
+        isCollapse() {
+            return this.$store.state.isCollapse;
+        },
+    },
+    methods: {
+        open() {
+            setTimeout(() => {
+                console.log(this.compensateList);
+                if (this.compensateList.length > 0)
+                    this.$alert('请立即支付！', '您有器材赔偿未支付！', {
+                        confirmButtonText: '了解',
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '请到消息处支付'
+                        });
+                    });;
+            }, 1000);
+        },
+        getUserInfo() {
+            this.userInfo.username = window.sessionStorage.getItem('username')
+            this.userInfo.id = window.sessionStorage.getItem('userId')
+            this.getCompensateNum();
+        },
+        handleMsg() {
+            this.$globalWebSocket.ws.onmessage = this.getMessage
+        },
+        getMessage(e) {
+            this.$notify.info({
+                title: '通知',
+                message: e.data
+            });
+            this.getBorrowNum();
+            this.getCompensateNum();
+        },
+        changeCollapse() {
+            this.$store.commit("menuCollapse");
+        },
+        toggleFullscreen() {
+            if (!screenfull.isEnabled) {
+                this.$notification.warning({
+                    message: '警告',
+                    description: `您的浏览器不支持全屏!`,
+                })
+                return false
+            }
+            screenfull.toggle()
+            this.isFull = !this.isFull
+        },
+        pay(notice) {
+            this.$confirm(`器材租用编号：${notice.borrowid}，赔偿原因：${notice.reason}，赔偿金额：${notice.price}，是否继续支付`, '缴纳赔偿', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$axios.post("/compensate/pay/" + notice.id).then(res => {
+                    this.$message({
+                        type: 'success',
+                        message: '支付成功!',
+                        onClose: () => {
+                            this.num--;
+                            this.getCompensateNum();
+                        }
+                    });
+                })
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消支付'
+                });
+            });
+        },
+        dateFormat(time) {
+            let date = new Date(time);
+            let year = date.getFullYear();
+            let month =
+                date.getMonth() + 1 < 10
+                    ? "0" + (date.getMonth() + 1)
+                    : date.getMonth() + 1;
+            let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+            return (year + "-" + month + "-" + day);
+        },
+        getBorrowNum() {
+            this.$axios.get("/sys/borrow/getBorrowNum").then(res => {
+                this.num = res.data.data.borrowNum;
+                this.borrowList = res.data.data.borrowNoticeList;
+                for (let i = 0; i < this.borrowList.length; i++) {
+                    this.borrowList[i].created = this.dateFormat(this.borrowList[i].created);
+                }
+            })
+        },
+        getCompensateNum() {
+            this.$axios.get("/compensate/getCompensateNum/" + this.userInfo.id).then(res => {
+                this.num += res.data.data.compensateNum;
+                this.compensateList = res.data.data.compensateList;
+                for (let i = 0; i < this.compensateList.length; i++) {
+                    this.compensateList[i].created = this.dateFormat(this.compensateList[i].created);
+                }
+            })
+        },
+        logout() {
+            this.$confirm("确定要退出系统吗?", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning",
+            }).then(() => {
+                window.sessionStorage.clear();
+                window.localStorage.clear();
+                this.$axios.post("/logout").then(res => {
+                    this.$store.commit("resetState");
+                    this.$message({
+                        message: '注销成功',
+                        type: 'success'
+                    })
+                    this.$router.push("/login").catch((err) => {
+                        this.$router.push("/login").catch((err) => { })
+                    })
+                })
+            }).catch(() => {
+                return false;
+            });
+        },
+    },
+}
+</script>
+<style scoped>
+.Header {
+    background-color: #2661ef;
+}
+.order {
+    height: 60px;
+    text-wrap: nowrap;
+    line-height: 60px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 20px;
+    margin-right: 10px;
+    color: #fff;
+}
+.order:hover {
+    color: #409EFF;
+}
+.notice_item {
+    border-bottom: 1px solid #868DAA;
+}
+.item {
+    border: none;
+    background: none;
+    color: #fff;
+}
+.system-name {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 56px;
+    width: 260px;
+}
+.toggle-button {
+    font-size: 18px;
+    line-height: 56px;
+    color: #fff;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    padding: 0 10px;
+}
+.fullScreen {
+    cursor: pointer;
+    margin: 10px 20px;
+    font-size: 20px;
+}
+.info {
+    display: block;
+    margin-bottom: 5px;
+}
+.go-approve {
+    display: inline-block;
+    border-bottom: 1px solid transparent;
+    color: #8bd2f4;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+.go-approve:hover {
+    color: #409EFF;
+    border-bottom: 1px solid #409EFF;
+}
+.el-dropdown-link {
+    text-wrap: nowrap;
+}
+@media (max-width: 1200px) {
+    .system-name {
+        display: none;
+    }
+}
+@media (max-width:700px) {
+    .el-avatar {
+        display: none;
+    }
+}
+</style>
+<style>
+.popoverStyle {
+    height: 500px;
+    overflow: auto;
+}
+</style>
+<template>
+  <div class="notice-bar" @click="tipClick">
+    <div class="notice-bar__icon">
+      <img :src="require('@/assets/notice.png')">
+    </div>
+    <div ref="wrap" class="notice-bar__wrap">
+      <div ref="content" class="notice-bar__content" :style="contentStyle">{{ text }}</div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: "noticeComponent",
+  props: {
+    text: {
+      type: String,
+      default: ''
+    },
+    speed: {
+      type: Number,
+      default: 40
+    },
+    defaultWidth: {
+      type: Number,
+      default: 375
+    }
+  },
+  data() {
+    return {
+      contentStyle: {
+        transitionDuration: '0s',
+        transform: 'translateX(0px)'
+      },
+      wrapWidth: 0,
+      contentWidth: 0,
+      time: 0,
+      timer: null,
+      convertSpeed: 1
+    }
+  },
+  created() { },
+  mounted() {
+    if (this.text) {
+      this.init()
+    }
+  },
+  watch: {
+    text() {
+      this.init()
+    }
+  },
+  methods: {
+    init() {
+      const _width = window.innerWidth
+      this.convertSpeed = _width / this.defaultWidth * this.speed  
+      this.wrapWidth = this.$refs.wrap.offsetWidth
+      this.contentWidth = this.$refs.content.offsetWidth
+      this.startAnimate()
+      this.timer = setInterval(() => {
+        this.startAnimate()
+      }, this.time * 1100)
+      this.$once('hook:beforeDestroy', () => {
+        clearInterval(this.timer)
+        this.timer = null
+      })
+    },
+    startAnimate() {
+      this.contentStyle.transitionDuration = '0s'
+      this.contentStyle.transform = 'translateX(' + this.wrapWidth * 2 + 'px)'
+      this.time = (this.wrapWidth * 2 + this.contentWidth) / this.convertSpeed
+      setTimeout(() => {
+        this.contentStyle.transitionDuration = this.time + 's'
+        this.contentStyle.transform = 'translateX(-' + this.contentWidth + 'px)'
+      }, 200)
+    },
+    tipClick() {
+      this.$emit('click')
+    }
+  }
+}
+</script>
+<style scoped>
+.notice-bar {
+  position: relative;
+  background-color: #f8f8f8;
+  width: 100%;
+  height: 40px;
+  padding-left: 0;
+  padding-right: 0;
+  font-family: 微软雅黑;
+  font-style: 14px;
+  font-weight: 400;
+  color: #868DAA;
+  display: flex;
+  align-items: center;
+}
+.notice-bar__wrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  height: 100%;
+  align-items: center;
+  overflow: hidden;
+}
+.notice-bar__content {
+  position: absolute;
+  white-space: nowrap;
+  transition-timing-function: linear;
+}
+.notice-bar__icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 20px;
+}
+.notice-bar__icon img {
+  width: 100%;
+}
+</style>
+<template>
+  <el-tabs v-model="editableTabsValue" type="card" closable @tab-remove="removeTab" @tab-click="clickTab">
+    <el-tab-pane v-for="(item, index) in editableTabs" :key="item.name" :label="item.title" :name="item.name">
+    </el-tab-pane>
+  </el-tabs>
+</template>
+<script>
+export default {
+  name: "Tabs",
+  data() {
+    return {
+    }
+  },
+  computed: {
+    editableTabs: {
+      get() {
+        return this.$store.state.menus.editableTabs;
+      },
+      set(val) {
+        this.$store.state.menus.editableTabs = val;
+      }
+    },
+    editableTabsValue: {
+      get() {
+        return this.$store.state.menus.editableTabsValue;
+      },
+      set(val) {
+        this.$store.state.menus.editableTabsValue = val;
+      }
+    }
+  },
+  methods: {
+    removeTab(targetName) {
+      let tabs = this.editableTabs;
+      let activeName = this.editableTabsValue;
+      if (targetName == 'index') return;
+      if (activeName === targetName) {
+        tabs.forEach((tab, index) => {
+          if (tab.name === targetName) {
+            let nextTab = tabs[index + 1] || tabs[index - 1];
+            if (nextTab) {
+              activeName = nextTab.name;
+            }
+          }
+        });
+      }
+      this.editableTabsValue = activeName;
+      this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+      this.$router.push({ name: activeName });
+    },
+    clickTab(target) {
+      if (this.$route.name == target.name) return
+      this.$router.push({ name: target.name });
+    }
+  }
+}
+</script>
+<style scoped>
+@media (max-width: 1300px) {
+  .el-tabs {
+    display: none;
+  }
+}
+</style>
+import Vue from "vue";
+import Router from "vue-router";
+import store from "@/store";
+import axios from "@/utils/request";
+import ElMessage from "element-ui";
+Vue.use(Router);
+const router = new Router({
+  mode: "hash",
+  base: process.env.BASE_URL,
+  routes: [
+    {
+      path: "/",
+      name: "layout",
+      redirect: "index",
+      component: () => import("@/layout/index.vue"),
+      children: [
+        {
+          path: "index",
+          name: "index",
+          meta: {
+            title: "首页",
+          },
+          component: () => import("@/pages/index/index.vue"),
+        },
+        {
+          path: "user/equipment",
+          name: "equipment",
+          meta: {
+            title: "器材列表",
+          },
+          component: () => import("@/pages/user/equipment.vue"),
+        },
+        {
+          path: "user/competition",
+          name: "competition",
+          meta: {
+            title: "竞赛列表",
+          },
+          component: () => import("@/pages/user/competition.vue"),
+        },
+        {
+          path: "user/competitionDetail",
+          name: "competitionDetail",
+          meta: {
+            title: "竞赛详情",
+          },
+          component: () => import("@/pages/user/competitionDetail.vue"),
+        },
+        {
+          path: "user/order",
+          name: "order",
+          meta: {
+            title: "我的订单",
+          },
+          component: () => import("@/pages/user/order.vue"),
+        },
+        {
+          path: "notice/Details",
+          name: "Details",
+          meta: {
+            title: "公告详情",
+          },
+          component: () => import("@/pages/notice/Details.vue"),
+        },
+        {
+          path: "notice/noticeList",
+          name: "noticeList",
+          meta: {
+            title: "公告列表",
+          },
+          component: () => import("@/pages/notice/noticeList.vue"),
+        },
+        {
+          path: "userCenter",
+          name: "UserCenter",
+          meta: {
+            title: "个人中心",
+          },
+          component: () => import("@/pages/UserCenter.vue"),
+        },
+      ],
+    },
+    {
+      path: "/Login",
+      name: "Login",
+      meta: {
+        title: "登录",
+      },
+      component: () => import("@/pages/Login/Login.vue"),
+    },
+  ],
+});
+router.beforeEach((to, from, next) => {
+  let hasRoute = store.state.menus.hasRoute;
+  let token = window.sessionStorage.getItem("token");
+  if (to.path == "/Login" && !token) {
+    next();
+  } else if (!token) {
+    ElMessage.Message.error("请先登录");
+    next("/Login");
+  } else if (to.path == "/login" && token) {
+    ElMessage.Message.error("请勿重复登录");
+    next({ path: from.path });
+  } else if (token && !hasRoute) {
+    axios
+      .get("/sys/menu/nav", {
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then((res) => {
+        store.commit("setMenuList", res.data.data.nav);
+        store.commit("setPermList", res.data.data.authorities);
+        let newRoutes = router.options.routes;
+        res.data.data.nav.forEach((menu) => {
+          if (menu.children) {
+            menu.children.forEach((e) => {
+              let route = menuToRoute(e);
+              if (route) {
+                newRoutes[0].children.push(route);
+              }
+            });
+          }
+        });
+        router.addRoutes(newRoutes);
+        hasRoute = true;
+        store.commit("changeRoutesStatus", hasRoute);
+      });
+  }
+  next();
+});
+const menuToRoute = (menu) => {
+  if (!menu.component) {
+    return null;
+  }
+  let route = {
+    name: menu.name,
+    path: menu.path,
+    meta: {
+      icon: menu.icon,
+      title: menu.title,
+    },
+  };
+  route.component = () => import("@/pages/" + menu.component + ".vue");
+  return route;
+};
+export default router;
+import Vue from 'vue'
+import Vuex from 'vuex'
+Vue.use(Vuex)
+export default {
+    state: {
+        menuList: [],
+        permList: [],
+        hasRoute: false,
+        editableTabsValue: 'index',
+        editableTabs: [{
+            title: '首页',
+            name: 'index'
+        }]
+    },
+    mutations: {
+        setMenuList(state,menus){
+            state.menuList = menus;
+        },
+        setPermList(state,perms){
+            state.permList = perms;
+        },
+        changeRoutesStatus(state,hasRoute){
+            state.hasRoute = hasRoute;
+            sessionStorage.setItem("hasRoute",hasRoute);
+        },
+        addTab(state,tab) {
+            let index = state.editableTabs.findIndex(e => e.name === tab.name);
+            if (index === -1){
+                state.editableTabs.push({
+                    title: tab.title,
+                    name: tab.name
+                });
+            }
+            state.editableTabsValue = tab.name;
+        },
+        resetState: (state,tab) => {
+            state.menuList = [];
+            state.permList = [];
+            state.hasRoute = false;
+            state.editableTabsValue = 'index';
+            state.editableTabs = [{
+                title: '首页',
+                name: 'index'
+            }]
+        }
+    },
+    actions: {},
+}
+<template>
+  <div id="app">
+    <router-view></router-view>
+  </div>
+</template>
+<script>
+export default {
+  name: 'App'
+}
+</script>

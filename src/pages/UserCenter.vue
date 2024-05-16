@@ -71,12 +71,14 @@ export default {
         if (valid) {
           const _this = this
           this.$axios.post('/sys/user/updatePass', this.passForm).then(res => {
-            _this.$alert(res.data.msg, '提示', {
+            _this.$alert(res.data.message, '提示', {
               confirmButtonText: '确定',
               callback: action => {
                 this.$refs[formName].resetFields();
+
               }
             });
+
           })
 
         } else {
